@@ -20,30 +20,50 @@ function in_cyan()    { _colored 6 "${1}"; } # use for main actions / progress
 function _list_commands()
 {
   echo
-  echo "Commands available ('${MAIN_COMMAND} COMMAND help' for usage):"
+  echo "Subcommands available ('${MAIN_COMMAND} SUBCOMMAND help' for usage):"
   echo
-  for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -vE '/_[[:alnum:]]+$' |sort ); do
-    echo -e "  $(basename ${i}):\t\t$(source "${i}" "desc";)"
-    echo -e "  $(basename ${i}):\t\t$(source "${i}"; echo ${DESC};)"
+  for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -vE '/_[[:alnum:]]+$' | sort); do
+    echo -e "  $(basename ${i}):\t\t$(source "${i}" && echo ${SUBCOMMAND_DESC})"
   done
   echo
   exit 1
 }
 
-cmd=${1}
+function _subcommand_help() {
+    subcmd=${1}
+    subhelp=${2}
+    echo
+    echo "Showing '${MAIN_COMMAND} ${1}' available actions"
+    echo
+    echo "${2}"
+    echo
+}
 
-case ${cmd} in
+function _handle_subcommand() {
+  subcmd=${1}
+  action=${2}
+
+  _log "running ${SUBCOMMANDS_DIR}/${subcmd} '${action}' "
+  . "${SUBCOMMANDS_DIR}/${subcmd}" "${action}"
+
+  if [[ "${action}" == "help" || -z "${action}" ]]; then
+    _log "showing '${subcmd}' help"
+    _subcommand_help ${subcmd} "${SUBCOMMAND_HELP}"
+  fi
+}
+
+subcmd=${1}
+case ${subcmd} in
   help|-h|-?|--help|'')
     _log 'help or no argument was given'
     _list_commands
     ;;
   *)
     _log "arguments '${*}'"
-    _log "checking if '${SUBCOMMANDS_DIR}/${cmd}' exists"
-    [[ ! -f "${SUBCOMMANDS_DIR}/${cmd}" ]] && in_red "'${cmd}' not found" && _list_commands
+    _log "checking if '${SUBCOMMANDS_DIR}/${subcmd}' exists"
+    [[ ! -f "${SUBCOMMANDS_DIR}/${subcmd}" ]] && in_red "'${subcmd}' not found" && _list_commands
     shift 1
-    _log "running ${SUBCOMMANDS_DIR}/${cmd} '${@}' "
-    . "${SUBCOMMANDS_DIR}/${cmd}" "$@"
+    _handle_subcommand ${subcmd} "${@}"
     ;;
 esac
 

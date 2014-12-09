@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# vim: ft=sh
+
+SUBCOMMAND_DESC="a template for subcommands"
+SUBCOMMAND_HELP=$(cat <<EOH
+one         this is the first action
+two         this is the second action
+EOH
+)
+
