@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
+MAIN_COMMAND=$(basename ${0})
+SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
+
+DEBUG=$(eval "[[ -n \${${MAIN_COMMAND^^}_DEBUG} ]] && echo 'true' ")
+
+function _log() {
+ [[ -n ${DEBUG} ]] && in_magenta "debug: ${1}"
+}
+
+function _colored()   { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
+function in_red()     { _colored 1 "${1}"; } # use for failures
+function in_green()   { _colored 2 "${1}"; } # use for successes
+function in_yellow()  { _colored 3 "${1}"; } # use for warnings / attention
+function in_magenta() { _colored 5 "${1}"; } # use for debug messages
+function in_cyan()    { _colored 6 "${1}"; } # use for main actions / progress
+
+function _list_commands()
+{
+  echo
+  echo "Commands available ('${MAIN_COMMAND} COMMAND help' for usage):"
+  echo
+  for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -vE '/_[[:alnum:]]+$' |sort ); do
+    echo -e "  $(basename ${i}):\t\t$(source "${i}" "desc";)"
+    echo -e "  $(basename ${i}):\t\t$(source "${i}"; echo ${DESC};)"
+  done
+  echo
+  exit 1
+}
+
+cmd=${1}
+
+case ${cmd} in
+  help|-h|-?|--help|'')
+    _log 'help or no argument was given'
+    _list_commands
+    ;;
+  *)
+    _log "arguments '${*}'"
+    _log "checking if '${SUBCOMMANDS_DIR}/${cmd}' exists"
+    [[ ! -f "${SUBCOMMANDS_DIR}/${cmd}" ]] && in_red "'${cmd}' not found" && _list_commands
+    shift 1
+    _log "running ${SUBCOMMANDS_DIR}/${cmd} '${@}' "
+    . "${SUBCOMMANDS_DIR}/${cmd}" "$@"
+    ;;
+esac
+
