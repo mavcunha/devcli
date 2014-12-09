@@ -30,40 +30,40 @@ function _list_commands()
 }
 
 function _subcommand_help() {
-    subcmd=${1}
-    subhelp=${2}
+    local subcmd=${1}
+    local subhelp=${2}
     echo
-    echo "Showing '${MAIN_COMMAND} ${1}' available actions"
+    echo "Showing '${MAIN_COMMAND} ${subcmd}' available actions"
     echo
-    echo "${2}"
+    echo "${subhelp}"
     echo
 }
 
 function _handle_subcommand() {
-  subcmd=${1}
-  action=${2}
+  local SUBCOMMAND=${1}; shift 1
+  local ACTION="${@}"
 
-  _log "running ${SUBCOMMANDS_DIR}/${subcmd} '${action}' "
-  . "${SUBCOMMANDS_DIR}/${subcmd}" "${action}"
+  _log "running ${SUBCOMMANDS_DIR}/${SUBCOMMAND} ${ACTION} "
+  . "${SUBCOMMANDS_DIR}/${SUBCOMMAND}" ${ACTION}
 
-  if [[ "${action}" == "help" || -z "${action}" ]]; then
-    _log "showing '${subcmd}' help"
-    _subcommand_help ${subcmd} "${SUBCOMMAND_HELP}"
+  if [[ "${ACTION}" == "help" || -z "${ACTION}" ]]; then
+    _log "showing '${SUBCOMMAND}' help"
+    _subcommand_help ${SUBCOMMAND} "${SUBCOMMAND_HELP}"
   fi
 }
 
-subcmd=${1}
-case ${subcmd} in
+_arg_subcmd=${1}
+case ${_arg_subcmd} in
   help|-h|-?|--help|'')
     _log 'help or no argument was given'
     _list_commands
     ;;
   *)
     _log "arguments '${*}'"
-    _log "checking if '${SUBCOMMANDS_DIR}/${subcmd}' exists"
-    [[ ! -f "${SUBCOMMANDS_DIR}/${subcmd}" ]] && in_red "'${subcmd}' not found" && _list_commands
+    _log "checking if '${SUBCOMMANDS_DIR}/${_arg_subcmd}' exists"
+    [[ ! -f "${SUBCOMMANDS_DIR}/${_arg_subcmd}" ]] && in_red "'${_arg_subcmd}' not found" && _list_commands
     shift 1
-    _handle_subcommand ${subcmd} "${@}"
+    _handle_subcommand ${_arg_subcmd} "${@}"
     ;;
 esac
 

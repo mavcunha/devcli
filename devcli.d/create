@@ -1,0 +1,26 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="Creates a new command line tool"
+SUBCOMMAND_HELP=$(cat <<EOH
+This creates a new set of command line tools.
+
+Usage: ${MAIN_COMMAND} ${SUBCOMMAND} NAME [ -d DIR ]
+
+NAME    This is the name you want to give to your tool, one
+        example could be 'mytool'.
+
+-d      Optional directory where to create the tool, defaults
+        to '.' which is the current directory.
+
+EOH
+)
+
+NEW_TOOL_NAME=${1}
+_log "new tool name '${NEW_TOOL_NAME}'"
+shift 1
+
+while getopts d:k OPTION "${@}"; do
+  case $OPTION in
+    d) NEW_TOOL_DIR=${OPTARG};;
+  esac
+done
+
