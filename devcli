@@ -22,7 +22,7 @@ function _list_commands()
   echo
   echo "Subcommands available ('${MAIN_COMMAND} SUBCOMMAND help' for usage):"
   echo
-  for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -vE '/_[[:alnum:]]+$' | sort); do
+  for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -vE '/_[^[:blank:]]+$' | sort); do
     echo -e "  $(basename ${i}):\t\t$(source "${i}" && echo ${SUBCOMMAND_DESC})"
   done
   echo
