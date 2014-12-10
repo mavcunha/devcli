@@ -1,0 +1,12 @@
+# vim: ft=sh
+# This manifest contains the list of files
+# that will be copied and/or used for updates
+# of devcli.
+
+function file_manifest() {
+  echo \
+$(cat <<-EOM
+  template
+EOM
+)
+}

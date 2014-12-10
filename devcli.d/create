@@ -1,26 +1,47 @@
 # vim: ft=sh
 SUBCOMMAND_DESC="Creates a new command line tool"
 SUBCOMMAND_HELP=$(cat <<EOH
-This creates a new set of command line tools.
+Usage: ${MAIN_COMMAND} ${SUBCOMMAND} -n NAME [ -d DIR ]
 
-Usage: ${MAIN_COMMAND} ${SUBCOMMAND} NAME [ -d DIR ]
+-n NAME	  This is the name you want to give to your tool, one
+          example could be 'mytool'.
 
-NAME    This is the name you want to give to your tool, one
-        example could be 'mytool'.
-
--d      Optional directory where to create the tool, defaults
-        to '.' which is the current directory.
+-d        Optional directory where to create the tool, defaults
+          to '.' which is the current directory.
 
 EOH
 )
 
-NEW_TOOL_NAME=${1}
-_log "new tool name '${NEW_TOOL_NAME}'"
-shift 1
+# skip if no argument was given or help needed.
+[[ -z "${@}" || "${1}" == 'help' ]] && return
 
-while getopts d:k OPTION "${@}"; do
+NEW_TOOL_DIR='.' # defaults to current directory
+
+while getopts n:d: OPTION "${@}"; do
   case $OPTION in
+    n) NEW_TOOL_NAME=${OPTARG};;
     d) NEW_TOOL_DIR=${OPTARG};;
   esac
 done
 
+# name is mandatory
+[[ -z ${NEW_TOOL_NAME} ]] && error "-n NAME not given"
+
+# ensure we can write our files
+[[ ! -d ${NEW_TOOL_DIR} || ! -w ${NEW_TOOL_DIR} ]] && \
+  error "${NEW_TOOL_DIR} is not a directory or we can't write to it."
+
+in_cyan "Creating ${NEW_TOOL_NAME}"
+
+cp ${ROOT_DIR}/${MAIN_COMMAND} ${NEW_TOOL_DIR}/${NEW_TOOL_NAME}
+
+NEW_TOOL_SUBCOMMANDS_DIR="${NEW_TOOL_DIR}/${NEW_TOOL_NAME}.d"
+log "new tool subcommand dir '${NEW_TOOL_SUBCOMMANDS_DIR}'"
+mkdir -p ${NEW_TOOL_SUBCOMMANDS_DIR}
+
+use "file_manifest"
+
+for f in $(file_manifest); do
+  log "copying '${f}'"
+  cp ${SUBCOMMANDS_DIR}/${f} ${NEW_TOOL_SUBCOMMANDS_DIR}/${f}
+done
