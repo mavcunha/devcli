@@ -6,6 +6,10 @@ SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
 
 DEBUG=$(eval "[[ -n \${${MAIN_COMMAND^^}_DEBUG} ]] && echo 'true' ")
 
+# add itself to PATH if needed
+type -a ${MAIN_COMMAND} &> /dev/null
+[[ $? != 0 ]] && export PATH=${PATH}:${ROOT_DIR}
+
 function _colored()   { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
 function in_red()     { _colored 1 "${1}"; } # use for failures
 function in_green()   { _colored 2 "${1}"; } # use for successes
