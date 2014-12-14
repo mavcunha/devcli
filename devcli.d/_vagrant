@@ -1,0 +1,32 @@
+# vim: ft=sh
+
+function _stop_app_on_vagrant()
+{
+  appname=${1}
+  pid=$(pgrep -f "${appname}")
+  sudo pkill -f "${appname}" &> /dev/null
+  [[ -z ${pid} ]] && exit 1
+  while kill -0 "${pid}" &> /dev/null; do
+    sleep 1; ((limit++))
+    [[ ${limit} -gt 10 ]] && in_red "Timeout stopping (${appname})" && break
+  done
+}
+
+function _run_on_vagrant()
+{
+  ssh vagrant "exit 0"
+  if [[ $? != 0 ]]; then
+    in_red "Vagrant not running, use 'vagrant up'"
+    return
+  fi
+  ssh vagrant -t "/bin/bash -l -c '${@}' "
+}
+
+function run()
+{
+  if [[ $(uname -s) == "Darwin" ]]; then
+    _run_on_vagrant "${@}"
+  else
+    eval "${@}"
+  fi
+}

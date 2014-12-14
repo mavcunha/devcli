@@ -1,0 +1,14 @@
+# vim: ft=sh
+
+function _ngrok_path_check() {
+  type -a ngrokaa &> /dev/null
+  [[ $? != 0 ]] && \
+echo $(cat <<EOM
+
+  asdf asdf
+
+EOM
+) && exit 1
+}
+
+_ngrok_path_check
