@@ -57,6 +57,24 @@ function use() {
   . ${SUBCOMMANDS_DIR}/_${1}
 }
 
+function random_hex() {
+  local chars=${1:-32}
+  echo $(cat /dev/urandom | env LC_CTYPE=C tr -cd 'a-f0-9' | head -c ${chars})
+}
+
+function stop_process() {
+  local appname="${*}"
+  local pid=$(pgrep -f "${appname}")
+  log "stop process:${appname} (${pid})"
+  pkill -f "${appname}" &> /dev/null
+  [[ -z ${pid} ]] && return
+  while kill -0 "${pid}" &> /dev/null; do
+    log "waiting process:${appname} (${pid}) stop"
+    sleep 1; ((limit++))
+    [[ ${limit} -gt 10 ]] && in_red "Timeout stopping (${appname})" && break
+  done
+}
+
 function _handle_subcommand() {
   local SUBCOMMAND=${1}; shift 1
   local ACTION="${@}"

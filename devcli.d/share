@@ -1,0 +1,69 @@
+# vim: ft=sh
+use 'ngrok' # helpers interface for ngrok
+
+SUBCOMMAND_DESC="Helpers for sharing stuff between team members"
+SUBCOMMAND_HELP=$(cat <<EOH
+Usage ${MAIN_COMMAND} ${SUBCOMMAND} [-m] [-g DIR] [-S]
+-m        Shares your "${HOME}/.m2/repository" (maven repository)
+-g DIR    Starts a git sharing inside DIR
+-S        Stops all shares
+
+It will output ngrok tunnels which your coleague will need for
+fetching your data.
+
+EOH
+)
+
+# avoid conflicts by choosing a random prefix
+_maven_addr="$(random_hex 6)-maven"
+
+NGROK_CONFIG="
+tunnels:
+  ${_maven_addr}:
+    proto:
+      http: 8000
+  mygit:
+    proto:
+      tcp:  9418
+"
+
+function _share_maven_repository() {
+  (cd ${HOME}/.m2/repository;
+   log "starting SimpleHTTPServer on 8000";
+   python -m SimpleHTTPServer 8000 &> /dev/null &)
+}
+
+function _share_git_repositories() {
+  local git_dir=${1}
+  (cd ${git_dir};
+   log "starting git daemon";
+   git daemon --base-path=. --export-all --reuseaddr --informative-errors &> /dev/null &)
+}
+
+function _stop_shares() {
+  stop_process "ngrok"
+  stop_process "git-daemon"
+  stop_process "SimpleHTTPServer 8000"
+}
+
+trap _stop_shares SIGINT SIGTERM
+
+ngrok_tunnels=""
+
+while getopts mg:S OPTION "${@}"; do
+  case $OPTION in
+    m)
+      _share_maven_repository
+      ngrok_tunnels="${ngrok_tunnels} ${_maven_addr}"
+    ;;
+    g)
+      _share_git_repositories ${OPTARG}
+      ngrok_tunnels="${ngrok_tunnels} mygit"
+    ;;
+    S)
+      _stop_shares
+    ;;
+  esac
+done
+
+[[ -n ${ngrok_tunnels} ]] && ngrok_start ${ngrok_tunnels}
