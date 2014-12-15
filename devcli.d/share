@@ -4,12 +4,13 @@ use 'ngrok' # helpers interface for ngrok
 SUBCOMMAND_DESC="Helpers for sharing stuff between team members"
 SUBCOMMAND_HELP=$(cat <<EOH
 Usage ${MAIN_COMMAND} ${SUBCOMMAND} [-m] [-g DIR] [-S]
--m        Shares your "${HOME}/.m2/repository" (maven repository)
--g DIR    Starts a git sharing inside DIR
--S        Stops all shares
-
-It will output ngrok tunnels which your coleague will need for
-fetching your data.
+-m           Shares your "${HOME}/.m2/repository" (maven repository)
+-g DIR       Starts a git sharing inside DIR
+-S           Stops all shares
+-G TUNNEL    Fetches from a shared git repository, TUNNEL is
+             the ngrok address like 'tcp://ngrok.com:55002'.
+             The repository will be resolved to be the same of
+             current directory.
 
 EOH
 )
@@ -35,9 +36,25 @@ function _share_maven_repository() {
 
 function _share_git_repositories() {
   local git_dir=${1}
+  [[ ! -d ${git_dir} ]] && error "${git_dir} doesn't exists or isn't a directory."
   (cd ${git_dir};
    log "starting git daemon";
    git daemon --base-path=. --export-all --reuseaddr --informative-errors &> /dev/null &)
+}
+
+function _fetch_from_shared_git() {
+  log "check if ${PWD} is a git repository"
+  $(git rev-parse --is-inside-work-tree 2> /dev/null) || error "It seesm you are not inside a git repository."
+
+  local shared_git=${1//tcp/git}
+  log "repo URL given '${1}' translated to '${shared_git}'"
+  local current_repo=$(basename ${PWD})
+  log "guessing repository name from '${PWD}' to be '${current_repo}'"
+
+  in_cyan "Fetching from ${shared_git}/${current_repo} master"
+  git fetch ${shared_git}/${current_repo} master
+  in_cyan "Merging changes with --ff-only"
+  git merge --ff-only FETCH_HEAD
 }
 
 function _stop_shares() {
@@ -50,7 +67,7 @@ trap _stop_shares SIGINT SIGTERM
 
 ngrok_tunnels=""
 
-while getopts mg:S OPTION "${@}"; do
+while getopts mg:SG: OPTION "${@}"; do
   case $OPTION in
     m)
       _share_maven_repository
@@ -59,6 +76,9 @@ while getopts mg:S OPTION "${@}"; do
     g)
       _share_git_repositories ${OPTARG}
       ngrok_tunnels="${ngrok_tunnels} mygit"
+    ;;
+    G)
+      _fetch_from_shared_git ${OPTARG}
     ;;
     S)
       _stop_shares
