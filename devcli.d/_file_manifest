@@ -7,6 +7,9 @@ function file_manifest() {
   echo \
 $(cat <<-EOM
   template
+  share
+  _ngrok
+  _vagrant
 EOM
 )
 }
