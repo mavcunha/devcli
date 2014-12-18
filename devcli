@@ -18,7 +18,11 @@ function in_magenta() { _colored 5 "${1}"; } # use for debug messages
 function in_cyan()    { _colored 6 "${1}"; } # use for main actions / progress
 
 function log() {
- [[ -n ${DEBUG} ]] && in_magenta "debug: ${*}"
+  if [[ -n ${DEBUG} ]]; then
+    tput -Txterm setaf 5 >&2
+    echo -e "debug: ${*}" >&2
+    tput -Txterm sgr0 >&2
+  fi
 }
 
 function _list_commands()
