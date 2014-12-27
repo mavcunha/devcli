@@ -1,0 +1,78 @@
+# vim: ft=sh
+SUBCOMMAND_HELP=$(cat <<EOH
+Functions to retrieve a token from RSA SecurID software
+(http://www.emc.com/security/rsa-securid/rsa-securid-software-authenticators/mac-os.htm)
+
+Functions:
+
+rsasecurid_pin [KEYCHAIN_NAME]
+
+This function retrieves your PIN from KeyChain, KEYCHAIN_NAME defaults to
+'rsatoken' use it to keep your RSA SecurID PIN safe while automating
+RSA token retrivals.
+
+rsasecurid_token [PIN]
+
+This function starts RSA SecurID software and types the PIN, after your
+token is displayed it is copied to your clipboard and also returned by this
+function.
+
+EOH
+)
+
+function _rsasecurid_attempt_to_get_token() {
+  local pin=${1}
+  log "using pin '${pin}' to for SecurID"
+
+  local DELAY_WAIT_FOR_START="0.3"
+  local DELAY_WAIT_FOR_TOKEN="0.75"
+  local DELAY_WAIT_FOR_COPY="1"
+
+  log "configured delay wait_for_start:${DELAY_WAIT_FOR_START}"
+  log "configured delay wait_for_token:${DELAY_WAIT_FOR_TOKEN}"
+  log "configured delay wait_for_copy:${DELAY_WAIT_FOR_COPY}"
+
+  log "starting applescript"
+  osascript <<EOA
+    set appName to "SecurID"
+    set thePin to "${pin}"
+
+    activate application appName
+
+    tell application appName
+      activate
+      tell application "System Events"
+        delay ${DELAY_WAIT_FOR_START} -- wait for app to start
+        keystroke thePin -- type the pin number
+        key code 36 -- return key
+        delay ${DELAY_WAIT_FOR_TOKEN} -- wait for token appear
+        key code 48 -- press tab
+        key code 49 -- space (to hit the copy button)
+        delay ${DELAY_WAIT_FOR_COPY} -- in yosemite keystrokes are dreadfull slow
+      end tell
+    end tell
+
+    quit application appName
+EOA
+}
+
+function rsasecurid_token() {
+    local pin=${1}
+    [[ -z ${pin} ]] && error "PIN not given."
+    log "clearing clipboard to avoid false positives"
+    echo -n '' | pbcopy
+    _rsasecurid_attempt_to_get_token ${pin}
+    local token=$(pbpaste | tr -d '\n')
+    log "got token: '${token}'"
+    echo ${token}
+}
+
+function rsasecurid_pin() {
+  log "getting pin from KeyChain"
+  local KEY_IN_KEYCHAIN=${1:-"rsatoken"}
+  log "using '${KEY_IN_KEYCHAIN}' as key to serch in KeyChain"
+  local pin=$(security -q find-generic-password -gl ${KEY_IN_KEYCHAIN} 2>&1  | egrep '^password' | awk -F\\\" '{print $2}')
+  [[ -z ${pin} ]] && error "PIN is empty, is '${KEY_IN_KEYCHAIN}' saved in your KeyChain?"
+  log "got pin: '${pin}'"
+  echo ${pin}
+}
