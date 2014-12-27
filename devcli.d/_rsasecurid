@@ -5,17 +5,20 @@ Functions to retrieve a token from RSA SecurID software
 
 Functions:
 
-rsasecurid_pin [KEYCHAIN_NAME]
+$(in_cyan 'rsasecurid_pin [KEYCHAIN_NAME]')
+  This function retrieves your PIN from KeyChain, KEYCHAIN_NAME defaults to
+  'rsatoken' use it to keep your RSA SecurID PIN safe while automating
+  RSA token retrivals.
 
-This function retrieves your PIN from KeyChain, KEYCHAIN_NAME defaults to
-'rsatoken' use it to keep your RSA SecurID PIN safe while automating
-RSA token retrivals.
+$(in_cyan 'rsasecurid_token [PIN]')
+  This function starts RSA SecurID software and types the PIN, after your
+  token is displayed it is copied to your clipboard and also returned by this
+  function.
 
-rsasecurid_token [PIN]
-
-This function starts RSA SecurID software and types the PIN, after your
-token is displayed it is copied to your clipboard and also returned by this
-function.
+  Some delays (sleep) are used to proper control time of start the application,
+  typing and copying. You might need to tweak them to your like if your machine
+  is faster/slower, check the *_rsasecurid_attempt_to_get_token* for see these
+  delays values.
 
 EOH
 )

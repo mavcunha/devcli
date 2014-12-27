@@ -1,0 +1,98 @@
+# vim: ft=sh
+SUBCOMMAND_HELP=$(cat <<EOH
+Functions to control and connect to VPN on OSX
+
+$(in_cyan 'vpn_guess_service_name')
+  Returns the first VPN IPSec it can find on network configurations.
+
+$(in_cyan 'vpn_status [VPN_SERVICE_NAME]')
+  Outputs Connected|Connecting|Disconnected for a given VPN_SERVICE_NAME, it
+  will use *vpn_guess_service_name* ouput as default.
+
+$(in_cyan 'vpn_start_connection [VPN_SERVICE_NAME]')
+  Will start VPN_SERVICE_NAME service. It will error if VPN_SERVICE_NAME is
+  not given or warn and stop if VPN_SERVICE_NAME is already Connected or Connecting
+  according to *vpn_status*
+
+$(in_cyan 'vpn_attempt_to_enter_password [PASSWORD]')
+  Will invoke AppleScript to type PASSWORD into VPN connection box, you should
+  call *vpn_start_connection* before calling this function. It will stop
+  if PASSWORD is not given.
+EOH
+)
+
+function vpn_guess_service_name() {
+  log "using scutil --nc list to get VPN service name"
+  vpn_name=$(scutil --nc list | grep IPSec | awk -F\" '{print $(NF-1)}' | head -1)
+  [[ -z ${vpn_name} ]] && error "Couldn't find a VPN service name using scutil."
+  log "found candidate to be '${vpn_name}'"
+  echo ${vpn_name}
+}
+
+function vpn_status() {
+  local vpn_service=${1:-$(vpn_guess_service_name)}
+  log "using service '${vpn_service}' to fetch status"
+  echo $(scutil --nc status "${vpn_service}" | grep -E 'Disconnected|Connected|Connecting')
+}
+
+function vpn_attempt_to_enter_password() {
+    # this is a fragment of https://gist.github.com/twksos/44b45abf5263635776ec
+    local password="${*}"
+    [[ -z ${password} ]] && error "Password wasn't given."
+    log "using '${password}' to fill VPN password"
+    osascript <<EOA
+  set VPNpassword to "${password}"
+  tell application "System Events"
+      set startTime to current date
+      repeat until exists (static text 1 of window 1 of application process "UserNotificationCenter" whose name is "Enter your user authentication")
+        if (current date) - startTime is greater than 8 then
+          error "Could not connect, the connection dialog did not pop up"
+          exit repeat
+        end if
+        delay 0.2
+      end repeat
+
+      set theProcess to application process "UserNotificationCenter"
+      set theWindow to window 1 of theProcess
+      set theDescription to static text 2 of theWindow
+
+      if name of theDescription is "Enter your user authentication" then
+        set theControls to get entire contents of theWindow
+        set thePassword to text field 1 of theWindow whose description is "secure text field"
+        set value of thePassword to VPNpassword
+        set theOKButton to button 1 of theWindow whose title is "OK"
+        click theOKButton
+
+        repeat until exists (button 1 of window 1 of application process "UserNotificationCenter" whose title is "Disconnect")
+          if exists (button 1 of window 1 of application process "UserNotificationCenter" whose title is "Cancel") then
+
+            set theCancelButton to button 1 of theWindow whose title is "Cancel"
+            click theCancelButton
+            error "please check password in the script."
+            exit repeat
+          end if
+          delay 0.2
+        end repeat
+
+        set theOKButton to button 1 of theWindow whose title is "OK"
+        click theOKButton
+      end if
+  end tell
+EOA
+}
+
+function vpn_start_connection() {
+  local vpn_service_name="${*}"
+  [[ -z ${vpn_service_name} ]] && error "VPN service name not given."
+  log "checking VPN status of '${vpn_service_name}'"
+  [[ $(vpn_status ${vpn_service_name}) == 'Connected' ]] && in_yellow "VPN is already connected" && return
+
+  log "calling scutil --nc start '${vpn_service_name}'"
+  scutil --nc start "${vpn_service_name}"
+  until [[ $(vpn_status ${vpn_service_name}) == 'Connecting' ]]; do
+    log "waiting VPN to start..."
+    ((limit++))
+    sleep 1
+    [[ ${limit} -gt 5 ]] && in_red "VPN ${vpn_service_name} didn't start" && break
+  done
+}
