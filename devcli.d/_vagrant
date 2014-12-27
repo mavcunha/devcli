@@ -1,32 +1,77 @@
 # vim: ft=sh
 
-function _stop_app_on_vagrant()
+function _vagrant_run_inside()
 {
-  appname=${1}
-  pid=$(pgrep -f "${appname}")
-  sudo pkill -f "${appname}" &> /dev/null
-  [[ -z ${pid} ]] && exit 1
-  while kill -0 "${pid}" &> /dev/null; do
-    sleep 1; ((limit++))
-    [[ ${limit} -gt 10 ]] && in_red "Timeout stopping (${appname})" && break
-  done
-}
-
-function _run_on_vagrant()
-{
-  ssh vagrant "exit 0"
+  local vagrant_vm=${1}
+  log "testing connection with ${vagrant_vm}"
+  ssh ${vagrant_vm} "exit 0"
+  shift 1
   if [[ $? != 0 ]]; then
-    in_red "Vagrant not running, use 'vagrant up'"
+    log "couldn't connect with machine: ${vagrant_vm}"
+    in_red "Vagrant machine ${vagrant_vm} not running, use 'vagrant up'"
     return
   fi
-  ssh vagrant -t "/bin/bash -l -c '${@}' "
+  log "executing '${@}'"
+  # for whatever you think is a problem
+  # 'ssh -t' is not the answer!
+  # you can't send bg jobs with '-t'
+  ssh ${vagrant_vm} -q "/bin/bash -l -c '${@}' "
 }
 
-function run()
+function vagrant_run()
 {
+  log "called vagrant_run"
+  local vagrant_vm=${1}
+  log "target marchine: ${vagrant_vm}"
+  shift 1
+
+  local debug=''
+  if [[ -n ${DEBUG} ]]; then
+    log 'DEBUG is enabled, forwarding it to vagrant'
+    debug="${MAIN_COMMAND^^}_DEBUG=true"
+  fi
+
   if [[ $(uname -s) == "Darwin" ]]; then
-    _run_on_vagrant "${@}"
+    log "running inside OS X, forwarding to _vagrant_run_inside"
+    _vagrant_run_inside ${vagrant_vm} "${debug} ${@}"
   else
-    eval "${@}"
+    log "running inside vagrant already, executing '${@}'"
+    eval "${debug} ${@}"
+  fi
+}
+
+function _vagrant_add_vagrant_to_ssh_config()
+{
+  local vagrant_vm=${1}
+  in_green "Adding ${vagrant_vm} to ~/.ssh/config"
+  vagrant ssh-config ${vagrant_vm} | sed -e "s/^Host default/Host ${vagrant_vm}/" >> ~/.ssh/config
+  echo "  ControlPath ~/.ssh/ssh_mux_%r@%h:%p" >> ~/.ssh/config
+  echo "  ControlMaster auto" >> ~/.ssh/config
+  echo "  ControlPersist 10m" >> ~/.ssh/config
+}
+
+function vagrant_check_ssh_config()
+{
+  local vagrant_vm=${1}
+  log "vagrant_vm: ${vagrant_vm}"
+  [[ -z ${vagrant_vm} ]] && error "Missing vagrant machine name"
+  log "checking if ${vagrant_vm} is configured in ~/.ssh/config"
+  grep -e "Host[[:blank:]]\\+${vagrant_vm}$" ~/.ssh/config &> /dev/null
+  if [[ $? != 0 ]]; then
+    log "\$?=$? vagrant_vm: ${vagrant_vm} not found in ~/.ssh/config"
+    in_yellow "NOK: ~/.ssh/config doesn't have ${vagrant_vm} as a host, want me to set this up?"
+    select yn in "Yes" "No"; do
+      case $yn in
+        Yes)
+          log "got 'Yes' as user answer"
+          _vagrant_add_vagrant_to_ssh_config ${vagrant_vm};
+          break;;
+        No)
+          log "got 'No' as user answer"
+          break;;
+    esac
+    done
+  else
+    in_green "OK: ~/.ssh/config has a ${vagrant_vm} host"
   fi
 }
