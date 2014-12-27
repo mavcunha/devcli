@@ -4,12 +4,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 MAIN_COMMAND=$(basename ${0})
 SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
 
-DEBUG=$(eval "[[ -n \${${MAIN_COMMAND^^}_DEBUG} ]] && echo 'true' ")
-
-# add itself to PATH if needed
-type -a ${MAIN_COMMAND} &> /dev/null
-[[ $? != 0 ]] && export PATH=${PATH}:${ROOT_DIR}
-
 function _colored()   { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
 function in_red()     { _colored 1 "${1}"; } # use for failures
 function in_green()   { _colored 2 "${1}"; } # use for successes
@@ -25,14 +19,24 @@ function log() {
   fi
 }
 
-function _check_bash_version() {
- if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
+# warn users of outdated bash versions
+if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
   in_yellow "WARNING: bash version is '${BASH_VERSION}'"
   in_yellow "WARNING: which is less than version 4."
   in_yellow "WARNING: Not all scripts and commands will work properly."
   in_yellow "WARNING: Consider installing a more recent version of bash."
- fi
-}
+fi
+
+# DEBUG flag is defined as soon as possible
+DEBUG=$(eval "[[ -n \${${MAIN_COMMAND^^}_DEBUG} ]] && echo 'true' ")
+
+# add itself to PATH if needed
+log "check if ${MAIN_COMMAND} is on PATH"
+type -a ${MAIN_COMMAND} &> /dev/null
+if [[ $? != 0 ]]; then
+  in_yellow "${MAIN_COMMAND} CLI is not on your PATH, it will be easier to use if it was."
+  export PATH=${PATH}:${ROOT_DIR}
+fi
 
 function _list_commands()
 {
@@ -40,7 +44,7 @@ function _list_commands()
   echo "Subcommands available ('${MAIN_COMMAND} SUBCOMMAND help' for usage):"
   echo
   for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -vE '/_[^[:blank:]]+$' | sort); do
-    echo -e "  $(basename ${i}):\t\t$(source "${i}" && echo ${SUBCOMMAND_DESC})"
+    echo -e "  $(basename ${i}):\t\t$(source "${i}"; echo ${SUBCOMMAND_DESC})"
   done
   echo
   exit 1
@@ -61,8 +65,21 @@ function _help() {
   _subcommand_help ${SUBCOMMAND} "${SUBCOMMAND_HELP}"
 }
 
+function _handle_subcommand() {
+  local SUBCOMMAND=${1}; shift 1
+  local ACTION="${@}"
+
+  log "running ${SUBCOMMANDS_DIR}/${SUBCOMMAND} ${ACTION} "
+  . "${SUBCOMMANDS_DIR}/${SUBCOMMAND}" ${ACTION}
+
+  if [[ "${ACTION}" == "help" || -z "${ACTION}" ]]; then
+    log "showing '${SUBCOMMAND}' help"
+    _help
+  fi
+}
+
 function error() {
-  in_red "Error: ${1}"
+  in_red "ERROR: ${1}"
   exit 1
 }
 
@@ -73,6 +90,12 @@ function use() {
 function random_hex() {
   local chars=${1:-32}
   echo $(cat /dev/urandom | env LC_CTYPE=C tr -cd 'a-f0-9' | head -c ${chars})
+}
+
+function check_process()
+{
+  log "check_process with '${1}'"
+  echo "pgrep -fl \"${1}\" | grep -qv pgrep && (tput -Txterm setaf 2; echo -e 'OK';)  || (tput -Txterm setaf 1; echo \"**NOK**\")"
 }
 
 function stop_process() {
@@ -87,21 +110,6 @@ function stop_process() {
     [[ ${limit} -gt 10 ]] && in_red "Timeout stopping (${appname})" && break
   done
 }
-
-function _handle_subcommand() {
-  local SUBCOMMAND=${1}; shift 1
-  local ACTION="${@}"
-
-  log "running ${SUBCOMMANDS_DIR}/${SUBCOMMAND} ${ACTION} "
-  . "${SUBCOMMANDS_DIR}/${SUBCOMMAND}" ${ACTION}
-
-  if [[ "${ACTION}" == "help" || -z "${ACTION}" ]]; then
-    log "showing '${SUBCOMMAND}' help"
-    _help
-  fi
-}
-
-_check_bash_version # warn user of old bash installations
 
 _arg_subcmd=${1}
 case ${_arg_subcmd} in
