@@ -50,6 +50,18 @@ function _list_commands()
   exit 1
 }
 
+function _list_libraries()
+{
+  echo
+  echo "Libraries available ('${MAIN_COMMAND} LIBRARY' for more information):"
+  echo
+  for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -E '/_[^[:blank:]]+$' | sort); do
+    echo -e "  $(basename ${i}):\t\t$(source "${i}"; echo ${SUBCOMMAND_DESC})"
+  done
+  echo
+  exit 1
+}
+
 function _subcommand_help() {
     local subcmd=${1}
     local subhelp=${2}
@@ -112,11 +124,16 @@ function stop_process() {
 }
 
 _arg_subcmd=${1}
+log "got argument '${_arg_subcmd}'"
 case ${_arg_subcmd} in
+  -l)
+    log 'showing available libs'
+    _list_libraries
+  ;;
   help|-h|-?|--help|'')
     log 'help or no argument was given'
     _list_commands
-    ;;
+  ;;
   *)
     log "arguments '${*}'"
     log "checking if '${SUBCOMMANDS_DIR}/${_arg_subcmd}' exists"

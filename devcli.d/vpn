@@ -1,0 +1,137 @@
+# vim: ft=sh
+use 'rsasecurid' # functions to retrive RSA token
+use 'vpn'        # functions to interact of OSX VPN
+
+SUBCOMMAND_DESC="\tExample of VPN connection automation"
+SUBCOMMAND_HELP=$(cat <<EOH
+readme        Read this first! Setup and notes.
+connect       Fetch PIN, get token from SecurID and connect with the VPN
+token         Get your token from SecurID
+status        Show current VPN status
+pin           Show PIN number saved in KeyChain
+start         Just start the VPN (same as clicking 'Connect to ...' menubar)
+servicename   Shows which VPN will be used by this script
+EOH
+)
+
+case ${1} in
+  connect)
+    in_cyan "Checking VPN current status"
+    [[ $(vpn_status) != "Disconnected" ]] && error "VPN is Connected or Connecting, stopping."
+
+    in_cyan "Fetching PIN from KeyChain"
+    pin=$(rsasecurid_pin)
+    [[ -z ${pin} ]] && error "Couldn't get your PIN, stopping."
+
+    in_cyan "Getting token from SecurID"
+    token=$(rsasecurid_token ${pin})
+    [[ -z ${token} ]] && error "Couldn't get token from SecurID. Tweak delay times?"
+
+    in_cyan "Starting VPN connection"
+    vpn_start_connection $(vpn_guess_service_name)
+
+    in_cyan "Filling password field with token"
+    vpn_attempt_to_enter_password ${token}
+  ;;
+  token)
+    in_cyan "Fetching token from SecurID"
+    echo $(rsasecurid_token $(rsasecurid_pin))
+  ;;
+  start)
+    in_cyan "Starting VPN"
+    vpn_start_connection $(vpn_guess_service_name)
+  ;;
+  status)
+    echo $(in_cyan "VPN Status: $(vpn_status)")
+  ;;
+  servicename)
+    echo $(in_cyan "VPN Service name: $(vpn_guess_service_name)")
+  ;;
+  pin)
+    echo $(in_cyan "PIN Number: $(rsasecurid_pin)")
+  ;;
+  readme)
+less <<END_OF_README
+
+First, be careful when using this script. Make sure you configured
+correctly your PIN number and VPN before. Follow the STEP-TESTING
+to ensure you got it right.
+
+One other thing, OS X still gets confused with fullscreen applications.
+If you run this script on a full screen terminal it might not work
+because the focus isn't correct to fill your password.
+
+For this script to work it needs some configurations:
+
+  1. Your PIN saved into KeyChain app
+  2. Assistive permissions for your terminal
+  3. Correctly know which VPN service to use
+
+Scroll down to STEP-TESTING if you already know how to configure.
+
+CONFIGURATION
+
+1) Using KeyChain to save your PIN number
+
+On OS X (your Mac) there's an application called 'KeyChain Access' usually
+under the directory 'Applications/Utilities', this is where all your passwords
+and sensitive information is saved.
+
+You need to open this application and add your PIN number to it so that is safe
+and can be used by this script to retrieve your RSA Token. It's a simple process.
+
+a) Open our KeyChain Access application
+b) Click on the '+' sign at the lower left
+c) Fill 'Key Chain Item Name' with 'rsatoken' (not your token but the word 'rsatoken')
+d) Fill 'Account Name' with your username in your machine
+e) Fill the 'Password' field with your PIN number 
+
+2) Assistive permissions for your terminal
+
+In order to click in windows and read the results you need to grant assistive
+permissions. Go to your System Preferences -> Security -> Privacy -> Accessibility
+and ensure that your Terminal application (if you use iTerm, then
+you need to add the iTerm app) is added to the list and it is checked.
+If you see an error like when trying to connect:
+
+62:115: execution error: System Events got an error: osascript is not allowed assistive access. (-10006)
+
+It probably means that you didn't add your Terminal to the Accessibility list.
+
+3) VPN service name guessing
+
+This script assumes that you will have a VPN (IPSec) configured. It tries to
+identify which one to use by listing and filtering. If you have more than one
+VPN (IPSec) configured it might get it wrong, see STEP-TESTING to verify which
+VPN service will be used.
+
+STEP-TESTING
+
+Before using 'connect' you can issue each command individually to check if all data
+is available for running.
+
+1) Ensure your PIN number is saved in KeyChain and can be retrieved.
+
+${MAIN_COMMAND} ${SUBCOMMAND} pin
+
+2) Check which VPN service will be used
+
+${MAIN_COMMAND} ${SUBCOMMAND} servicename
+
+3) Retrieve the token from RSA SecurID using your PIN
+
+${MAIN_COMMAND} ${SUBCOMMAND} token
+
+4) Start the VPN and retrieve your token, test if you can successfully connect.
+Paste your token from the clipboard into the VPN password window.
+
+${MAIN_COMMAND} ${SUBCOMMAND} token
+${MAIN_COMMAND} ${SUBCOMMAND} start
+
+5) Finally, you can try go all the way
+
+${MAIN_COMMAND} ${SUBCOMMAND} connect
+
+END_OF_README
+  ;;
+esac

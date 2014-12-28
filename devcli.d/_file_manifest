@@ -1,8 +1,11 @@
 # vim: ft=sh
-# This manifest contains the list of files
-# that will be copied and/or used for updates
-# of devcli.
-
+SUBCOMMAND_DESC="Files used for create/update devcli"
+SUBCOMMAND_HELP=$(cat <<EOH
+$(in_cyan 'file_manifest')
+  Returns a list of files that will be copied and/or used for updates of
+  devcli.
+EOH
+)
 function file_manifest() {
   echo \
 $(cat <<-EOM
