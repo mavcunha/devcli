@@ -1,11 +1,8 @@
 # vim: ft=sh
 SUBCOMMAND_HELP=$(cat <<EOH
 Function to start ngrok with custom configurations.
-Fist include this into your script by issuing:
 
-use 'ngrok'
-
-Then, define NGROK_CONFIG with your 'ngrok' configuration, example:
+Define NGROK_CONFIG with your 'ngrok' configuration, example:
 
 NGROK_CONFIG='
 tunnels:
@@ -17,27 +14,27 @@ tunnels:
       tcp:  9418
 '
 
-Later in your code you can call:
+Functions:
 
-ngrok_start "mygit myservice"
-
-This will start 'ngrok' tunnels and output the addresses created.
+$(in_cyan 'ngrok_start "mygit myservice"')
+  This will start 'ngrok' tunnels and output the addresses created. If NGROK_CONFIG is
+  not defined it will use whatever is configured in ~/.ngrok
 EOH
 )
 
 function _ngrok_path_check() {
   log "checking if ngrok can be found on PATH"
   type -a ngrok &> /dev/null
-  [[ $? != 0 ]] && in_red "Can't find 'ngrok', please install from 'https://ngrok.com/download' and add it to your PATH" && exit 1
+  [[ $? != 0 ]] && error "Can't find 'ngrok', please install from 'https://ngrok.com/download' and add it to your PATH"
 }
 
 function ngrok_start() {
+  _ngrok_path_check
   local ngrok_tunnels="${*}"
 
-  [[ -z ${NGROK_CONFIG} ]] && in_yellow "NGROK_CONFIG not defined, using default configuration."
+  [[ -z ${NGROK_CONFIG} ]] && in_yellow "NGROK_CONFIG not defined, using configuration in ~/.ngrok"
 
   in_cyan "Starting ngrok, use CTRL-C to stop."
-
   log "ngrok config: ${NGROK_CONFIG}"
 
   tunnel_re='Tunnel established at (.*)'
@@ -48,5 +45,3 @@ function ngrok_start() {
     log "[ngrok] ${line}"
   done < <(ngrok -log='stdout' -config=<(cat ~/.ngrok <(echo "${NGROK_CONFIG}")) start ${ngrok_tunnels})
 }
-
-_ngrok_path_check
