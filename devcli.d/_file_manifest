@@ -9,10 +9,12 @@ EOH
 function file_manifest() {
   echo \
 $(cat <<-EOM
-  template
   share
+  vpn
   _ngrok
   _vagrant
+  _rsasecurid
+  _vpn
 EOM
 )
 }
