@@ -8,7 +8,7 @@ Start by calling `devcli create -n TOOL_NAME -d DIR_TO_CREATE`, where
 **TOOL_NAME** is how you want to call your new CLI tool. **DIR_TO_CREATE** is
 where you want it be be created. Example:
 
-  ./devcli create -n mytool -d ~/Projects/myproject
+    ./devcli create -n mytool -d ~/Projects/myproject
 
 # Extending your new tool
 
