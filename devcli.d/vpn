@@ -84,7 +84,7 @@ a) Open our KeyChain Access application
 b) Click on the '+' sign at the lower left
 c) Fill 'Key Chain Item Name' with 'rsatoken' (not your token but the word 'rsatoken')
 d) Fill 'Account Name' with your username in your machine
-e) Fill the 'Password' field with your PIN number 
+e) Fill the 'Password' field with your PIN number
 
 2) Assistive permissions for your terminal
 
