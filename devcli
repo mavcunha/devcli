@@ -25,10 +25,10 @@ if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
   in_yellow "WARNING: which is less than version 4."
   in_yellow "WARNING: Not all scripts and commands will work properly."
   in_yellow "WARNING: Consider installing a more recent version of bash."
+else
+  # DEBUG flag is defined as soon as possible
+  DEBUG=$(eval "[[ -n \${${MAIN_COMMAND^^}_DEBUG} ]] && echo 'true' ")
 fi
-
-# DEBUG flag is defined as soon as possible
-DEBUG=$(eval "[[ -n \${${MAIN_COMMAND^^}_DEBUG} ]] && echo 'true' ")
 
 # add itself to PATH if needed
 log "check if ${MAIN_COMMAND} is on PATH"
