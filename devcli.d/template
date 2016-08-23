@@ -1,10 +1,43 @@
 #!/usr/bin/env bash
 # vim: ft=sh
 
-SUBCOMMAND_DESC="a template for subcommands"
+SUBCOMMAND_DESC="Describe what your command does"
 SUBCOMMAND_HELP=$(cat <<EOH
-one         this is the first action
-two         this is the second action
+Provide a longer description on how to use this command and more context, for example
+$> devcli template hello
+This will say Hello World
+$> devcli template confirm
+This will prompt the user for a y/n confirmation
 EOH
 )
+
+#Any command here will be executed when running the template command
+echo "Welcome to your very own cli!"
+
+#Some useful commands:
+
+#Different actions based on arguments
+case ${1}
+  #This will be executed if we run template hello
+  hello)
+    echo "Hello World!"
+    ;;
+  #This will be executed if we run template confirm
+  confirm)
+    #Ask for user confirmation before executing an action
+    read -p "Do you want to proceed?(y/n) " choice
+    case "$choice"
+      y|Y)
+        #You can use different collors for output
+        in_cyan "Confirmed"
+        ;;
+      n|N)
+        in_yellow "Not confirmed"
+        ;;
+      *)
+        in_red "Invalid option"
+        ;;
+    esac
+    ;;
+esac
 
