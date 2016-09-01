@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
+MAIN_COMMAND=$(basename ${0})
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
-MAIN_COMMAND=$(basename ${0})
 SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
 
 function _colored()   { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
@@ -38,6 +38,9 @@ if [[ $? != 0 ]]; then
   in_yellow "${MAIN_COMMAND} CLI is not on your PATH, it will be easier to use if it was."
   export PATH=${PATH}:${ROOT_DIR}
 fi
+
+# environment settings that depend on a project
+[[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
 function _list_commands()
 {

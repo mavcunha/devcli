@@ -1,0 +1,21 @@
+# vim: ft=sh sw=2 ts=2 expandtab
+# This file is loaded first and anything defined here
+# will be available to all subcommands.
+# This is a valid bash file and will execute
+
+# Example, force Java to version 1.7 for all subcomands.
+# export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
+
+# A helper function...
+# that returns true if running on OSX
+function __osx() {
+  [[ $(uname) == "Darwin" ]]
+}
+
+# This will open a file with open in OSX
+# or try xdg-open on Ubuntu...
+function open_file() {
+  local file=${1}
+  [[ -n ${file} ]] || return
+  __osx && open ${file} || xdg-open ${file}
+}
