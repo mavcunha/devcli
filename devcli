@@ -5,12 +5,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
 SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
 
-function _colored()   { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
-function in_red()     { _colored 1 "${1}"; } # use for failures
-function in_green()   { _colored 2 "${1}"; } # use for successes
-function in_yellow()  { _colored 3 "${1}"; } # use for warnings / attention
-function in_magenta() { _colored 5 "${1}"; } # use for debug messages
-function in_cyan()    { _colored 6 "${1}"; } # use for main actions / progress
+function _color()     { tput -Txterm setaf ${1}; echo -ne ${2}; tput -Txterm sgr0; }
+function in_red()     { _color 1 "${1}"; } # use for failures
+function in_green()   { _color 2 "${1}"; } # use for successes
+function in_yellow()  { _color 3 "${1}"; } # use for warnings / attention
+function in_magenta() { _color 5 "${1}"; } # use for debug messages
+function in_cyan()    { _color 6 "${1}"; } # use for main actions / progress
 
 function log() {
   if [[ -n ${DEBUG} ]]; then
@@ -34,18 +34,16 @@ fi
 # add itself to PATH if needed
 log "check if ${MAIN_COMMAND} is on PATH"
 type -a ${MAIN_COMMAND} &> /dev/null
-if [[ $? != 0 ]]; then
-  in_yellow "${MAIN_COMMAND} CLI is not on your PATH, it will be easier to use if it was."
+if [[ $? -ne 0 ]]; then
   export PATH=${PATH}:${ROOT_DIR}
 fi
 
 # environment settings that depend on a project
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
-function _list_commands()
-{
+function _list_commands() {
   echo
-  echo "Subcommands available ('${MAIN_COMMAND} SUBCOMMAND help' for usage):"
+  echo "Subcommands available ('${MAIN_COMMAND} SUBCOMMAND' for usage):"
   echo
   for i in $(export LC_COLLATE=C; find ${SUBCOMMANDS_DIR} -maxdepth 1 -type f -or -type l | grep -vE '/_[^[:blank:]]+$' | sort); do
     echo -e "  $(basename ${i}):\t\t$(source "${i}"; echo ${SUBCOMMAND_DESC})"
@@ -54,8 +52,7 @@ function _list_commands()
   exit 1
 }
 
-function _list_libraries()
-{
+function _list_libraries() {
   echo
   echo "Libraries available ('${MAIN_COMMAND} LIBRARY' for more information):"
   echo
@@ -67,14 +64,14 @@ function _list_libraries()
 }
 
 function _subcommand_help() {
-    local subcmd=${1}
-    local subhelp=${2}
-    echo
-    echo "Showing '${MAIN_COMMAND} ${subcmd}' available actions"
-    echo
-    echo "${subhelp}"
-    echo
-    exit 1
+  local subcmd=${1}
+  local subhelp=${2}
+  echo
+  echo "Showing '${MAIN_COMMAND} ${subcmd}' available actions"
+  echo
+  echo "${subhelp}"
+  echo
+  exit 1
 }
 
 function _help() {
@@ -99,32 +96,13 @@ function error() {
   exit 1
 }
 
+function warn() {
+  in_yellow "WARN: ${1}"
+}
+
 function use() {
+  log "requiring: ${1}"
   . ${SUBCOMMANDS_DIR}/_${1}
-}
-
-function random_hex() {
-  local chars=${1:-32}
-  echo $(cat /dev/urandom | env LC_CTYPE=C tr -cd 'a-f0-9' | head -c ${chars})
-}
-
-function check_process()
-{
-  log "check_process with '${1}'"
-  echo "pgrep -fl \"${1}\" | grep -qv pgrep && (tput -Txterm setaf 2; echo -e 'OK';)  || (tput -Txterm setaf 1; echo \"**NOK**\")"
-}
-
-function stop_process() {
-  local appname="${*}"
-  local pid=$(pgrep -f "${appname}")
-  log "stop process:${appname} (${pid})"
-  pkill -f "${appname}" &> /dev/null
-  [[ -z ${pid} ]] && return
-  while kill -0 "${pid}" &> /dev/null; do
-    log "waiting process:${appname} (${pid}) stop"
-    sleep 1; ((limit++))
-    [[ ${limit} -gt 10 ]] && in_red "Timeout stopping (${appname})" && break
-  done
 }
 
 _arg_subcmd=${1}
@@ -146,4 +124,3 @@ case ${_arg_subcmd} in
     _handle_subcommand ${_arg_subcmd} "${@}"
     ;;
 esac
-
