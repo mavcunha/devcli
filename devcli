@@ -105,6 +105,10 @@ function use() {
   . ${SUBCOMMANDS_DIR}/_${1}
 }
 
+function is_help_mode() {
+  [[ -z "${@}" || "${1}" == 'help' ]]
+}
+
 _arg_subcmd=${1}
 log "got argument '${_arg_subcmd}'"
 case ${_arg_subcmd} in

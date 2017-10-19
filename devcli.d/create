@@ -13,7 +13,7 @@ EOH
 )
 
 # skip if no argument was given or help needed.
-[[ -z "${@}" || "${1}" == 'help' ]] && return
+is_help_mode && return
 
 NEW_TOOL_DIR='.' # defaults to current directory
 
