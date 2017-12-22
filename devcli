@@ -42,11 +42,22 @@ fi
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
 function _list_commands() {
-  echo
-  echo "Subcommands available ('${MAIN_COMMAND} SUBCOMMAND' for usage):"
-  echo
+  cat <<EOU
+  usage: ${MAIN_COMMAND} [-h|-?|--help|help] [-l] [--version] [SUBCOMMAND]
+
+  -h|-?|--help|help            Show this help message
+  -l                           List available libraries
+  --version                    Display current version
+
+  Subcommands available ('${MAIN_COMMAND} SUBCOMMAND' for usage):
+
+EOU
   for i in $(export LC_COLLATE=C; find ${SUBCOMMANDS_DIR} -maxdepth 1 -type f -or -type l | grep -vE '/_[^[:blank:]]+$' | sort); do
-    echo -e "  $(basename ${i}):\t\t$(source "${i}"; echo ${SUBCOMMAND_DESC})"
+    source "${i}"
+    local libname=$(basename ${i})
+    printf "  %.24s %-60s\n" \
+       "${libname}                                          " \
+       "${SUBCOMMAND_DESC}"
   done
   echo
   exit 1
@@ -70,11 +81,13 @@ function is_help_mode() {
 function _subcommand_help() {
   local subcmd=${1}
   local subhelp=${2}
-  echo
-  echo "Showing '${MAIN_COMMAND} ${subcmd}' available actions"
-  echo
-  echo "${subhelp}"
-  echo
+  cat <<EOU
+
+  Showing '${MAIN_COMMAND} ${subcmd}' available actions:
+
+  ${subhelp}
+
+EOU
   exit 1
 }
 

@@ -2,7 +2,7 @@
 use 'rsasecurid' # functions to retrive RSA token
 use 'vpn'        # functions to interact of OSX VPN
 
-SUBCOMMAND_DESC="\tExample of VPN connection automation"
+SUBCOMMAND_DESC="Example of VPN connection automation"
 SUBCOMMAND_HELP=$(cat <<EOH
 readme        Read this first! Setup and notes.
 connect       Fetch PIN, get token from SecurID and connect with the VPN
