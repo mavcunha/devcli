@@ -13,37 +13,42 @@ EOH
 )
 
 # skip if no argument was given or help needed.
-[[ -z "${@}" || "${1}" == 'help' ]] && return
+#[[ -z "${@}" || "${1}" == 'help' ]] && return
+is_help_mode && return
 
 NEW_TOOL_DIR='.' # defaults to current directory
 
-while getopts n:d: OPTION "${@}"; do
-  case $OPTION in
-    n) NEW_TOOL_NAME=${OPTARG};;
-    d) NEW_TOOL_DIR=${OPTARG};;
-  esac
-done
+case ${1} in
+  *)
+  while getopts n:d: OPTION "${@}"; do
+    case $OPTION in
+      n) NEW_TOOL_NAME=${OPTARG};;
+      d) NEW_TOOL_DIR=${OPTARG};;
+    esac
+  done
 
-# name is mandatory
-[[ -z ${NEW_TOOL_NAME} ]] && error "missing -n NAME"
+  # name is mandatory
+  [[ -z ${NEW_TOOL_NAME} ]] && error "missing -n NAME"
 
-# ensure we can write our files
-[[ ! -d ${NEW_TOOL_DIR} || ! -w ${NEW_TOOL_DIR} ]] && \
-  error "${NEW_TOOL_DIR} is not a directory or we can't write to it."
+  # ensure we can write our files
+  [[ ! -d ${NEW_TOOL_DIR} || ! -w ${NEW_TOOL_DIR} ]] && \
+    error "${NEW_TOOL_DIR} is not a directory or we can't write to it."
 
-in_cyan "Creating ${NEW_TOOL_NAME}"
+  in_cyan "Creating ${NEW_TOOL_NAME}"
 
-cp ${ROOT_DIR}/${MAIN_COMMAND} ${NEW_TOOL_DIR}/${NEW_TOOL_NAME}
-in_green "created ${NEW_TOOL_DIR}/${NEW_TOOL_NAME}"
+  cp ${ROOT_DIR}/${MAIN_COMMAND} ${NEW_TOOL_DIR}/${NEW_TOOL_NAME}
+  in_green "created ${NEW_TOOL_DIR}/${NEW_TOOL_NAME}"
 
-NEW_TOOL_SUBCOMMANDS_DIR="${NEW_TOOL_DIR}/${NEW_TOOL_NAME}.d"
-log "new tool subcommand dir '${NEW_TOOL_SUBCOMMANDS_DIR}'"
-mkdir -p ${NEW_TOOL_SUBCOMMANDS_DIR}
-in_green "created ${NEW_TOOL_SUBCOMMANDS_DIR}"
+  NEW_TOOL_SUBCOMMANDS_DIR="${NEW_TOOL_DIR}/${NEW_TOOL_NAME}.d"
+  log "new tool subcommand dir '${NEW_TOOL_SUBCOMMANDS_DIR}'"
+  mkdir -p ${NEW_TOOL_SUBCOMMANDS_DIR}
+  in_green "created ${NEW_TOOL_SUBCOMMANDS_DIR}"
 
-use "file_manifest"
-for f in $(file_manifest); do
-  log "copying '${f}'"
-  cp ${SUBCOMMANDS_DIR}/${f} ${NEW_TOOL_SUBCOMMANDS_DIR}/${f}
-  in_green "created ${NEW_TOOL_SUBCOMMANDS_DIR}/${f}"
-done
+  use "file_manifest"
+  for f in $(file_manifest); do
+    log "copying '${f}'"
+    cp ${SUBCOMMANDS_DIR}/${f} ${NEW_TOOL_SUBCOMMANDS_DIR}/${f}
+    in_green "created ${NEW_TOOL_SUBCOMMANDS_DIR}/${f}"
+  done
+;;
+esac
