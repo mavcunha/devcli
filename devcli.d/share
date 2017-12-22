@@ -15,6 +15,11 @@ Usage ${MAIN_COMMAND} ${SUBCOMMAND} [-m] [-g DIR] [-S]
 EOH
 )
 
+function random_hex() {
+  local chars=${1:-32}
+  echo $(cat /dev/urandom | env LC_CTYPE=C tr -cd 'a-f0-9' | head -c ${chars})
+}
+
 # avoid conflicts by choosing a random prefix
 _maven_addr="$(random_hex 6)-maven"
 
