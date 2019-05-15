@@ -1,7 +1,11 @@
 # vim: ft=sh sw=2 ts=2 expandtab
-# This file is loaded first and anything defined here
-# will be available to all subcommands.
-# This is a valid bash file and will execute
+SUBCOMMAND_DESC="Loaded environment for any other commands"
+SUBCOMMAND_HELP=$(cat <<EOH
+This file is loaded first and anything defined here
+will be available to all subcommands.
+This is a valid bash file and will execute
+EOH
+)
 
 # Example, force Java to version 1.7 for all subcomands.
 # export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
