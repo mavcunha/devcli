@@ -1,5 +1,5 @@
 # vim: ft=sh
-SUBCOMMAND_DESC="\tFunctions to interact with 'ngrok'"
+SUBCOMMAND_DESC="Functions to interact with 'ngrok'"
 SUBCOMMAND_HELP=$(cat <<EOH
 Function to start ngrok with custom configurations.
 

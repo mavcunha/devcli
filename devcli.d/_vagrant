@@ -1,5 +1,5 @@
 # vim: ft=sh
-SUBCOMMAND_DESC="\tFunctions to interact and execute command on vagrant VMs"
+SUBCOMMAND_DESC="Functions to interact and execute command on vagrant VMs"
 
 function _vagrant_run_inside()
 {

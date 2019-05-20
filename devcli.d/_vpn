@@ -1,5 +1,5 @@
 # vim: ft=sh
-SUBCOMMAND_DESC="\t\tFunctions to control and connect to VPN on OSX"
+SUBCOMMAND_DESC="Functions to control and connect to VPN on OSX"
 SUBCOMMAND_HELP=$(cat <<EOH
 Functions to control and connect to VPN on OSX
 

@@ -1,5 +1,5 @@
 # vim: ft=sh
-SUBCOMMAND_DESC="\tFunctions to retrieve a token from RSA SecurID software"
+SUBCOMMAND_DESC="Functions to retrieve a token from RSA SecurID software"
 SUBCOMMAND_HELP=$(cat <<EOH
 Functions to retrieve a token from RSA SecurID software
 (http://www.emc.com/security/rsa-securid/rsa-securid-software-authenticators/mac-os.htm)
