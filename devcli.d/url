@@ -1,0 +1,48 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="\tAll known URLs"
+
+declare -A url
+
+url[jira]=''
+url[story]=''
+
+function _show_all() {
+  echo
+  echo "URL list and aliases:"
+  echo
+  for name in "${!url[@]}";do
+    printf "%-20s %s\n" ${name} ${url[${name}]}
+  done | sort
+}
+
+SUBCOMMAND_HELP=$(cat <<EOH
+show            Will list all URLs and aliases
+open [ALIAS]    Will invoke 'open URL', in OSX this will
+                fire up your browser.
+story NUMBER    Directly open a story on Jira.
+ALIAS           Same as "open [ALIAS]" just a shortcut
+
+$(_show_all)
+
+EOH
+)
+
+case ${1} in
+  show)
+    _show_all
+  ;;
+  open)
+    log "Alias given '${2}'"
+    [[ -n ${url[${2}]} ]] && open_file ${url[${2}]} || _show_all
+  ;;
+  story)
+    [[ -z "${2}" ]] && error "Missing story number."
+    log "Opening story ${2}"
+    open_file "${url['story']}${2}"
+  ;;
+  *)
+    [[ -z ${1} ]] && return # early return when no argument is given
+    log "Alias given '${1}'"
+    [[ -n ${url[${1}]} ]] && open_file ${url[${1}]} || _show_all
+  ;;
+e
