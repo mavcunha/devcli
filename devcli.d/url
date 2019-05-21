@@ -3,8 +3,7 @@ SUBCOMMAND_DESC="All known URLs"
 
 declare -A url
 
-url[jira]=''
-url[story]=''
+load_conf list
 
 function _show_all() {
   echo

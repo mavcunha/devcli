@@ -5,7 +5,6 @@ MAIN_COMMAND_VERSION="0.8"
 MAIN_COMMAND=$(basename ${0})
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
-SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
 
 function _color()     { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
 function in_red()     { _color 1 "${1}"; } # use for failures
@@ -14,12 +13,32 @@ function in_yellow()  { _color 3 "${1}"; } # use for warnings / attention
 function in_magenta() { _color 5 "${1}"; } # use for debug messages
 function in_cyan()    { _color 6 "${1}"; } # use for main actions / progress
 
+# will evaluate if there's a env variable in the
+# form of MAIN_COMMAND_SUFFIX, if defined
+# will return its value otherwise default
+# will be returned.
+# This is not the same as ${VAR:-DEFAULT} because
+# VAR is dynamic. If the command line gets renamed
+# these are supposed to keep working regarless
+function dyn_value() {
+  local suffix="${1}"
+  local default="${2}"
+  v=$(eval "echo -n \${${MAIN_COMMAND^^}_${suffix}}")
+  [[ -n ${v} ]] && echo ${v} || echo ${default}
+}
+
+# Variables that can be overriden by the environment:
+# CONFIGURATION_DIR points to where "load_conf" will look
+# SUBCOMMANDS_DIR is the main dir where commands are load from
+# DEBUG is turn on or off debug messages.
+CONFIGURATION_DIR=$(dyn_value "CONF_DIR" "${ROOT_DIR}/conf")
+SUBCOMMANDS_DIR=$(dyn_value "SUBCMD_DIR" "${ROOT_DIR}/${MAIN_COMMAND}.d")
+DEBUG=$(dyn_value "DEBUG" "")
+
 # log functions should be defined as soon as possible
 # so it become available for other functions
-# If DEVCLI_DEBUG is defined in anyway it means
-# debug information is on
 function log() {
-  if [[ -n ${DEVCLI_DEBUG} ]]; then
+  if [[ -n ${DEBUG} ]]; then
     tput -Txterm setaf 5 >&2
     echo -e "debug: ${*}" >&2
     tput -Txterm sgr0 >&2
@@ -40,8 +59,15 @@ function warn() {
 }
 
 function use() {
-  log "requiring: ${1}"
-  . ${SUBCOMMANDS_DIR}/_${1}
+  local lib="${SUBCOMMANDS_DIR}/_${1}"
+  log "requiring library: ${lib}"
+  [[ -f ${lib} ]] && source ${lib} || error "Library '${lib}' not found"
+}
+
+function load_conf() {
+  local conf="${CONFIGURATION_DIR}/${SUBCOMMAND}/${1}"
+  log "loading configuration: ${conf}"
+  [[ -f ${conf} ]] && source ${conf} || error "Configuration '${conf}' not found"
 }
 
 # warn users of outdated bash versions

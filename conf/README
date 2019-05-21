@@ -1,0 +1,9 @@
+These are configuration files which still are valid
+bash scripts. They will be loaded from 'load_conf' function
+called from a subcommand. The naming convention is:
+
+`subcommand/file`
+
+So if a command like 'url' calls for 'load_conf list' the configuration
+will be loaded from 'url/list' to avoid clashing between configurations
+and extensions from other subcommands.
