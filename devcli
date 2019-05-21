@@ -2,7 +2,7 @@
 
 MAIN_COMMAND_VERSION="0.8"
 
-MAIN_COMMAND=$(basename ${0} | tr '[:lower:]'  '[:upper:]' )
+MAIN_COMMAND=$(basename ${0})
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
 SUBCOMMANDS_DIR=${ROOT_DIR}/${MAIN_COMMAND}.d
@@ -16,29 +16,35 @@ function in_cyan()    { _color 6 "${1}"; } # use for main actions / progress
 
 # log functions should be defined as soon as possible
 # so it become available for other functions
+# If DEVCLI_DEBUG is defined in anyway it means
+# debug information is on
 function log() {
-  if [[ -n ${DEBUG} ]]; then
+  if [[ -n ${DEVCLI_DEBUG} ]]; then
     tput -Txterm setaf 5 >&2
     echo -e "debug: ${*}" >&2
     tput -Txterm sgr0 >&2
   fi
 }
 
+# This is a shortcut for exiting with error
+# calling error will stop the script
 function error() {
   in_red "ERROR: ${1}"
   exit 1
 }
 
+# This is a shortcut for warning messages,
+# these won't stop the execution of the script
 function warn() {
   in_yellow "WARN: ${1}"
 }
 
-DEBUG=$(eval "[[ -z \${${MAIN_COMMAND}_DEBUG} ]]")
-
 # warn users of outdated bash versions
 if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
   warn "bash version is '${BASH_VERSION}'"
-  warn "Consider installing a more recent version."
+  warn "Consider installing bash 4 or newer."
+  warn "Syntax errors and/or wrong behavior can occur"
+  warn "under outdated versions of bash."
 fi
 
 # add itself to PATH if needed
