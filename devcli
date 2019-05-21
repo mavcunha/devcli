@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MAIN_COMMAND_VERSION="0.8"
+MAIN_COMMAND_VERSION="1.1"
 
 MAIN_COMMAND=$(basename ${0})
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
@@ -12,6 +12,25 @@ function in_green()   { _color 2 "${1}"; } # use for successes
 function in_yellow()  { _color 3 "${1}"; } # use for warnings / attention
 function in_magenta() { _color 5 "${1}"; } # use for debug messages
 function in_cyan()    { _color 6 "${1}"; } # use for main actions / progress
+
+# This is a shortcut for exiting with error
+# calling error will stop the script
+function error() {
+  in_red "ERROR: ${1}"
+  exit 1
+}
+
+# This is a shortcut for warning messages,
+# these won't stop the execution of the script
+function warn() {
+  in_yellow "WARN: ${1}"
+}
+
+# stop on outdated bash
+[[ ${BASH_VERSION%%.*} -lt 4 ]] \
+  && error "Outdated bash version (${BASH_VERSION}), \
+  use bash 4 or newer to run ${MAIN_COMMAND}"
+
 
 # will evaluate if there's a env variable in the
 # form of MAIN_COMMAND_SUFFIX, if defined
@@ -45,19 +64,6 @@ function log() {
   fi
 }
 
-# This is a shortcut for exiting with error
-# calling error will stop the script
-function error() {
-  in_red "ERROR: ${1}"
-  exit 1
-}
-
-# This is a shortcut for warning messages,
-# these won't stop the execution of the script
-function warn() {
-  in_yellow "WARN: ${1}"
-}
-
 function use() {
   local lib="${SUBCOMMANDS_DIR}/_${1}"
   log "requiring library: ${lib}"
@@ -69,14 +75,6 @@ function load_conf() {
   log "loading configuration: ${conf}"
   [[ -f ${conf} ]] && source ${conf} || error "Configuration '${conf}' not found"
 }
-
-# warn users of outdated bash versions
-if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
-  warn "bash version is '${BASH_VERSION}'"
-  warn "Consider installing bash 4 or newer."
-  warn "Syntax errors and/or wrong behavior can occur"
-  warn "under outdated versions of bash."
-fi
 
 # add itself to PATH if needed
 log "check if ${MAIN_COMMAND} is on PATH"
