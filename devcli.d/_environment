@@ -41,9 +41,7 @@ function open_file() {
 # 'devcli pass' can be handled by keychain or password-store
 #
 function handle_interface() {
-  [[ -z ${SUBCOMMAND} ]] \
-    && log "handle_interface called during load, ignoring" \
-    && return
+  no_subcmd && return
 
   log "handling interface for '${SUBCOMMAND}'"
   use "${impmap[${SUBCOMMAND}]:-empty}" \

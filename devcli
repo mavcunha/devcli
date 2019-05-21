@@ -70,7 +70,15 @@ function use() {
   [[ -f ${lib} ]] && source ${lib} || error "Library '${lib}' not found"
 }
 
+function no_subcmd() {
+  log "no_subcmd()?"
+  [[ -z ${SUBCOMMAND} ]] \
+    && log "no subcommand given" \
+    && return
+}
+
 function load_conf() {
+  no_subcmd && return
   local conf="${CONFIGURATION_DIR}/${SUBCOMMAND}/${1}"
   log "loading configuration: ${conf}"
   [[ -f ${conf} ]] && source ${conf} || error "Configuration '${conf}' not found"
@@ -86,18 +94,20 @@ fi
 # environment settings that depend on a project
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
-###########################
-# internal functions bellow
-
 # Lists all subcommands ignoring those with a leading "_"
 # which are libraries
 function _list_commands() {
   cat <<EOU
-  usage: ${MAIN_COMMAND} [-h|-?|--help|help] [-l] [--version] [SUBCOMMAND]
+  usage: ${MAIN_COMMAND} [-h|-?|--help|help] [-l|--libs] [--version] [--debug] [SUBCOMMAND]
 
   -h|-?|--help|help            Show this help message
-  -l                           List available libraries
+
+  -l|--libs                    List available libraries
+
   --version                    Display current version
+
+  --debug                      Will turn debug mode on. The same can be achieved by
+                               setting ${MAIN_COMMAND^^}_DEBUG=true
 
   Subcommands available ('${MAIN_COMMAND} SUBCOMMAND' for usage):
 
@@ -165,7 +175,7 @@ function _handle_subcommand() {
 _arg_subcmd=${1}
 log "got argument '${_arg_subcmd}'"
 case ${_arg_subcmd} in
-  -l)
+  -l|--libs)
     log 'showing available libs'
     _list_libraries
   ;;
@@ -175,6 +185,12 @@ case ${_arg_subcmd} in
   ;;
   --version)
     echo "${MAIN_COMMAND} ${MAIN_COMMAND_VERSION}"
+  ;;
+  --debug)
+    DEBUG="true"
+    log 'debug enabled using --debug'
+    shift
+    eval "${MAIN_COMMAND^^}_DEBUG=true ${MAIN_COMMAND} ${@}"
   ;;
   *)
     log "arguments '${*}'"
