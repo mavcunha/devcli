@@ -1,5 +1,5 @@
 # vim: ft=sh
-SUBCOMMAND_DESC="\tAll known URLs"
+SUBCOMMAND_DESC="All known URLs"
 
 declare -A url
 
@@ -45,4 +45,4 @@ case ${1} in
     log "Alias given '${1}'"
     [[ -n ${url[${1}]} ]] && open_file ${url[${1}]} || _show_all
   ;;
-e
+esac
