@@ -39,6 +39,11 @@ function warn() {
   in_yellow "WARN: ${1}"
 }
 
+function use() {
+  log "requiring: ${1}"
+  . ${SUBCOMMANDS_DIR}/_${1}
+}
+
 # warn users of outdated bash versions
 if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
   warn "bash version is '${BASH_VERSION}'"
@@ -57,6 +62,11 @@ fi
 # environment settings that depend on a project
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
+###########################
+# internal functions bellow
+
+# Lists all subcommands ignoring those with a leading "_"
+# which are libraries
 function _list_commands() {
   cat <<EOU
   usage: ${MAIN_COMMAND} [-h|-?|--help|help] [-l] [--version] [SUBCOMMAND]
@@ -79,6 +89,8 @@ EOU
   exit 1
 }
 
+# List only libraries and ignore commands, this is
+# the opposite of _list_commands()
 function _list_libraries() {
   cat <<EOU
 
@@ -124,11 +136,6 @@ function _handle_subcommand() {
     log "showing '${SUBCOMMAND}' help"
     _help
   fi
-}
-
-function use() {
-  log "requiring: ${1}"
-  . ${SUBCOMMANDS_DIR}/_${1}
 }
 
 _arg_subcmd=${1}
