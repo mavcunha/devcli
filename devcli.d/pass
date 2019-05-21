@@ -1,0 +1,13 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="Shortcut for passwords"
+SUBCOMMAND_HELP=$(cat <<EOH
+Usage ${MAIN_COMMAND} ${SUBCOMMAND}
+
+get KEY          Will return the password for KEY
+
+EOH
+)
+
+function get() { error "not implemented"; }
+
+handle_interface ${@}

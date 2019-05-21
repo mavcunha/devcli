@@ -16,6 +16,14 @@ function __osx() {
   [[ $(uname) == "Darwin" ]]
 }
 
+function __assoc_array_to_string() {
+  local -n assoc_array="${1}"
+  for k in ${!assoc_array[@]}; do
+    values="${values}[${k}]=${assoc_array[${k}]} "
+  done
+  echo "${values}"
+}
+
 # This will open a file with open in OSX
 # or try xdg-open on Ubuntu...
 function open_file() {
@@ -23,3 +31,46 @@ function open_file() {
   [[ -n ${file} ]] || return
   __osx && open ${file} || xdg-open ${file}
 }
+
+# loads file pointed by impmap key
+# if ['SUBCOMMAND']='FILE' in impmap it will
+# load 'FILE' iff the command if SUBCOMMAND is being
+# called. This function allows for loading different
+# implementations for the same SUBCOMMAND, example:
+#
+# 'devcli pass' can be handled by keychain or password-store
+#
+function handle_interface() {
+  [[ -z ${SUBCOMMAND} ]] \
+    && log "handle_interface called during load, ignoring" \
+    && return
+
+  log "handling interface for '${SUBCOMMAND}'"
+  use "${impmap[${SUBCOMMAND}]:-empty}" \
+    || error "can't load implementation for '${SUBCOMMAND}'"
+
+  log "forwarding call '${@}' to implementation"
+  ${1:-"false"} ${@:2}
+}
+
+
+##############################################################
+# This is the implementation map which is part of handling
+# different implementations for the same command when necessary.
+# It follows the following syntax:
+#
+# ["SUBCOMMAND"]="implementation_to_use"
+#
+# If the SUBCOMMAND is not found in this map it is assumed
+# the SUBCOMMAND is the concrete implementation. Since
+# the implementation is loaded using 'use' the file
+# must be named with a '_' prefix.
+declare -A impmap=(
+
+["pass"]="password-store"
+
+)
+log "loaded impmap as '$(__assoc_array_to_string impmap)'"
+###############################################################
+
+
