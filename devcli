@@ -5,6 +5,7 @@ MAIN_COMMAND=$(basename ${0})
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
 
+# color output functions
 function _color()     { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
 function in_red()     { _color 1 "${1}"; } # use for failures
 function in_green()   { _color 2 "${1}"; } # use for successes
@@ -78,14 +79,14 @@ function use() {
 }
 
 function load_conf() {
-  # load_conf CONF - loads conf/CONF file, see conf/cmdmap for examples
+  # load_conf CONF - loads conf/CONF file, see 'docs loadconf'
   local section="${1}"
   log "loading configuration for: ${section}"
   # this will declare ${section} as a global assoc array
   # which can be used anywhere.
   log "declaring ${section} as global associative array"
   declare -Ag "${section}"
-  if [[ _no_subcmd ]]; then
+  if __no_subcmd; then
     local conf="${CONFIGURATION_DIR}/${section}"
     log "loading global configuration: ${conf}, if missing won't fail."
     [[ -f ${conf} ]] && source "${conf}"
@@ -95,6 +96,7 @@ function load_conf() {
     [[ -f ${conf} ]] && source "${conf}" \
       || error "Configuration '${conf}' not found"
   fi
+  log "loaded ${section} as '$(__assoc_array_to_string ${section})'"
   # the assoc array is protected to avoid changes
   # in these configurations after they are loaded
   # just to avoid confusion
@@ -152,7 +154,6 @@ function __assoc_array_to_string() {
 # load any mapping between subcommands
 # and implementations, see: conf/cmdmap
 load_conf cmdmap
-log "loaded cmdmap as '$(__assoc_array_to_string cmdmap)'"
 ###############################################################
 
 # Lists all subcommands ignoring those with a leading "_"

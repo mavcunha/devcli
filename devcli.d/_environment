@@ -17,7 +17,9 @@ function __osx() {
 # or try xdg-open on Ubuntu...
 function open_file() {
   local file=${1}
+  log "open_file(${file})"
   [[ -n ${file} ]] || return
+  log "calling OS dependent open command"
   __osx && open ${file} || xdg-open ${file}
 }
 

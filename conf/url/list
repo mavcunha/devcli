@@ -2,5 +2,5 @@
 # Use simple names as keys so that is easy to recall
 # like "board" to point to your team story board.
 
-url[jira]='https://www.atlassian.com/software/jira'
-url[git]='https://github.com'
+list[jira]='https://www.atlassian.com/software/jira'
+list[git]='https://github.com'

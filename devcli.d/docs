@@ -11,6 +11,9 @@ cmdmap                     Information on CMDMAP feature to load
                            different implementation for the same
                            subcommand.
 
+load_conf                  Function which loads external configuration
+                           for subcommands.
+
 EOH
 )
 
@@ -18,9 +21,12 @@ function main_functions() {
   grep -A 1 -E "^function" "${ROOT_DIR}/${MAIN_COMMAND}"
 }
 
+function __less_notice() {
+  in_cyan "Using 'less' to show this doc, type 'q' to exit"
+}
 function cmdmap() {
   less -R <<END_OF_DOC
-$(in_cyan "Using 'less' to show this doc, type 'q' to exit")
+$(__less_notice)
 CMDMAP - Mapping subcommands to different implementations
 
 Using CMDMAP it is possible to map a subcommand to a implementation. In
@@ -37,7 +43,7 @@ If in 'conf/cmdmap' we find:
 ['date']='macos_date'
 
 This means that 'devcli' will delegate the subcommand parameters to the file
-'_macos_date' and that file has one implementation of 'to_date'.  Now, let's
+'_macos_date' and that file has one implementation of 'to_date'. Now, let's
 say we want to use the same command on a linux machine. Unfortunetelly macos'
 and linux's date utility uses different arguments to parse a timestamp.
 
@@ -76,4 +82,43 @@ you can explore the files 'conf/cmdmap', 'devcli.d/date',
 END_OF_DOC
 }
 
-handle_interface ${@}
+function load_conf() {
+  less -R <<END_OF_DOC
+$(__less_notice)
+
+load_conf CONFIGURATION_FILE
+
+This is a helper to externalizer some data out of a subcommand. 'load_conf'
+expects to find a file in 'conf/SUBCOMMAND/CONFIGURATION_FILE' and will fail
+if can't find one. The file syntax is roughtly a bash associative array.
+
+on the subcommand we call:
+
+'load_conf myconf'
+
+then in the conf/SUBCOMMAND/myconf file:
+
+myconf["param"]="value"
+myconf["another"]="other value"
+
+back in the subcommand we can now:
+
+echo '\${myconf['param']}'
+
+The 'myconf' associative array defined in the CONFIGURATION_FILE will be
+available to the subcommand that called 'load_conf' as a readonly variable. The
+reason for be a readonly is just to avoid values being change indirectly and
+causing confusion. It is possible to lift this restriction if needed. See
+the 'url' subcommand for an example of this function in use.
+
+END_OF_DOC
+}
+
+# if argument if given call it as a function
+# this must be the last code to be executed on
+# this file for it to work properly. Add any other functions
+# before this.
+[[ -n "${1}" ]] \
+  && (type -t "${1}" | grep -qE "^function" &> /dev/null \
+  && ${1} \
+  || error "'${1}' documentation not found.")
