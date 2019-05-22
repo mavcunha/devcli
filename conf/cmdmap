@@ -1,4 +1,5 @@
 ##############################################################
+# vim: ft=sh
 # This configuration defines the cases where 'handle_interface'
 # is used. A subcommand can have different implementations
 # while keeping the same CLI.
@@ -16,6 +17,20 @@
 # the SUBCOMMAND is the concrete implementation. Since
 # the implementation is loaded using the 'use' function,
 # implementatons must be named with a '_' prefix.
+#############################################################
+
+#############################################################
+# date handler example
+# see 'devcli docs cmdmap' for more information
+
+# decide which implementation will handle the 'date' subcommand
+date_handler=$(__osx && echo "macos_date" || echo "linux_date")
+
+# set the handler on 'cmdmap' so devcli can delegate
+cmdmap['date']=${date_handler}
+# end of date example
+#############################################################
+
 
 # subcommand pass delegates to the
 # password-store implementation

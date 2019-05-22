@@ -1,0 +1,14 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="Formats dates"
+SUBCOMMAND_HELP=$(cat <<EOH
+Usage ${MAIN_COMMAND} ${SUBCOMMAND}
+
+to_date UNIX_TIMESTAMP         Takes a UNIX_TIMESTAMP and outputs and formmated
+                               date
+
+EOH
+)
+
+function to_date() { error "not implemented"; }
+
+handle_interface ${@}

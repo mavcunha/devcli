@@ -1,0 +1,7 @@
+# vim: ft=sh
+
+# takes a UNIX timestamp and returns formatted
+# using linux date
+function to_date() {
+  date -d "@${1}"
+}

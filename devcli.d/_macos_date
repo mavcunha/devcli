@@ -1,0 +1,7 @@
+# vim: ft=sh
+
+# takes a UNIX timestamp and returns formatted
+# using macos_date
+function to_date() {
+  date -r ${1}
+}

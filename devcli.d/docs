@@ -1,0 +1,79 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="${MAIN_COMMAND} documentation"
+SUBCOMMAND_HELP=$(cat <<EOH
+Usage ${MAIN_COMMAND} ${SUBCOMMAND}
+
+main_functions             It parsers all functions in ${MAIN_COMMAND}
+                           and shows a little description of what
+                           they do.
+
+cmdmap                     Information on CMDMAP feature to load
+                           different implementation for the same
+                           subcommand.
+
+EOH
+)
+
+function main_functions() {
+  grep -A 1 -E "^function" "${ROOT_DIR}/${MAIN_COMMAND}"
+}
+
+function cmdmap() {
+  less -R <<END_OF_DOC
+$(in_cyan "Using 'less' to show this doc, type 'q' to exit")
+CMDMAP - Mapping subcommands to different implementations
+
+Using CMDMAP it is possible to map a subcommand to a implementation. In
+the 'conf/cmdmap' is defined an associative array that tells devcli
+to forward the arguments to another file. For example:
+
+Let's say we have a subcommand called 'date' which formats
+TIMESTAMP into readable dates, like so:
+
+devcli date to_date 1234567890
+
+If in 'conf/cmdmap' we find:
+
+['date']='macos_date'
+
+This means that 'devcli' will delegate the subcommand parameters to the file
+'_macos_date' and that file has one implementation of 'to_date'.  Now, let's
+say we want to use the same command on a linux machine. Unfortunetelly macos'
+and linux's date utility uses different arguments to parse a timestamp.
+
+MacOS:
+date -r TIMESTAMP
+
+Linux:
+date -d @TIMESTAMP
+
+This could force us to have two different actions for 'date' something like:
+
+devcli date linux_to_date TIMESTAMP
+
+and
+
+devcli date macos_to_date TIMESTAMP
+
+Which works but is not ideal. The point of abstracting the details of some
+commands is broken if we define different syntaxes for different OSes. Using
+the CMDMAP we can dynamically decide which implementation we wnat to use. In
+'conf/cmdmap' we can write:
+
+date_handler=\$( __osx && echo "macos_date" || echo "linux_date" \)
+cmdmap["date"]="\${date_handler\}"
+
+In this case depending on which OS the devcli is running it will load different
+implementaions while it keeps the same interface so:
+
+devcli date to_date TIMESTAMP
+
+Will work in both MacOS and Linux. This example is implemented into 'devcli'
+you can explore the files 'conf/cmdmap', 'devcli.d/date',
+'devcli.d/_linux_date' and 'devcli.d/_macos_date' to learn more about it.
+
+
+END_OF_DOC
+}
+
+handle_interface ${@}

@@ -15,6 +15,7 @@ function in_cyan()    { _color 6 "${1}"; } # use for main actions / progress
 # This is a shortcut for exiting with error
 # calling error will stop the script
 function error() {
+  # error MSG - show error message in the form of "ERROR: MSG" and exit
   in_red "ERROR: ${1}"
   exit 1
 }
@@ -22,6 +23,7 @@ function error() {
 # This is a shortcut for warning messages,
 # these won't stop the execution of the script
 function warn() {
+  # warn MSG - show a warning in the form of "WARN: MSG"
   in_yellow "WARN: ${1}"
 }
 
@@ -39,6 +41,7 @@ function warn() {
 # VAR is dynamic. If the command line gets renamed
 # these are supposed to keep working regarless
 function dyn_value() {
+  # dyn_value SUFFIX DEFAULT - returns env variable value MAIN_COMMAND + _SUFFIX or DEFAULT
   local suffix="${1}"
   local default="${2}"
   v=$(eval "echo -n \${${MAIN_COMMAND^^}_${suffix}}")
@@ -59,6 +62,7 @@ DEBUG=$(dyn_value "DEBUG" "")
 # change the debug message color there's
 # a performance penalty on heavy logging
 function log() {
+  # log MSG - logs a message when debug is enabled
   if [[ -n ${DEBUG} ]]; then
     tput -Txterm setaf 5 >&2
     echo -e "debug: ${*}" >&2
@@ -67,19 +71,21 @@ function log() {
 }
 
 function use() {
+  # use LIB - loads library LIB in the current context
   local lib="${SUBCOMMANDS_DIR}/_${1}"
   log "requiring library: ${lib}"
   [[ -f ${lib} ]] && source ${lib} || error "Library '${lib}' not found"
 }
 
 function load_conf() {
+  # load_conf CONF - loads conf/CONF file, see conf/cmdmap for examples
   local section="${1}"
   log "loading configuration for: ${section}"
   # this will declare ${section} as a global assoc array
   # which can be used anywhere.
   log "declaring ${section} as global associative array"
   declare -Ag "${section}"
-  if [[ $(__no_subcmd) ]]; then
+  if [[ _no_subcmd ]]; then
     local conf="${CONFIGURATION_DIR}/${section}"
     log "loading global configuration: ${conf}, if missing won't fail."
     [[ -f ${conf} ]] && source "${conf}"
@@ -104,6 +110,7 @@ function load_conf() {
 # 'devcli pass' can be handled by keychain or password-store
 #
 function handle_interface() {
+  # handle_interface ${@} - calls subcommand using function, see: 'docs cmdmap'
   __no_subcmd && return
 
   log "handling interface for '${SUBCOMMAND}'"
@@ -128,7 +135,7 @@ fi
 # like 'devcli SUBCMD' or just 'devcli'
 function __no_subcmd() {
   log "called __no_subcmd()"
-  [[ -z ${SUBCOMMAND} ]] && log "no subcommand given" && echo "true"
+  [[ -z ${SUBCOMMAND} ]]
 }
 
 # util function to output assoc arrays
