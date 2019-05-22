@@ -107,7 +107,7 @@ function load_conf() {
 # called. This function allows for loading different
 # implementations for the same SUBCOMMAND, example:
 #
-# 'devcli pass' can be handled by keychain or password-store
+# 'pass' can be handled by keychain or password-store
 #
 function handle_interface() {
   # handle_interface ${@} - calls subcommand using function, see: 'docs cmdmap'
@@ -132,7 +132,7 @@ fi
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
 # evaluate if we have been called with a subcommand
-# like 'devcli SUBCMD' or just 'devcli'
+# like 'MAIN_COMMAND SUBCMD' or just 'MAIN_COMMAND'
 function __no_subcmd() {
   log "called __no_subcmd()"
   [[ -z ${SUBCOMMAND} ]]
@@ -173,6 +173,7 @@ function _list_commands() {
   Subcommands available ('${MAIN_COMMAND} SUBCOMMAND' for usage):
 
 EOU
+  log "reading subcommands from ${SUBCOMMANDS_DIR}"
   for i in $(export LC_COLLATE=C; find ${SUBCOMMANDS_DIR} -maxdepth 1 -type f -or -type l | grep -vE '/_[^[:blank:]]+$' | sort); do
     source "${i}"
     local libname=$(basename ${i})
@@ -192,6 +193,7 @@ function _list_libraries() {
   Libraries available ('${MAIN_COMMAND} LIBRARY' for more information):
 
 EOU
+  log "reading libraries from ${SUBCOMMANDS_DIR}"
   for i in $(export LC_COLLATE=C; ls ${SUBCOMMANDS_DIR}/* | grep -E '/_[^[:blank:]]+$' | sort); do
     source "${i}"
     local libname=$(basename ${i})

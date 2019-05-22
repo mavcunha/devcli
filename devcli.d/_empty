@@ -2,3 +2,8 @@
 # This file is empty on purpose, it will
 # be used as default loading for missing
 # libraries.
+SUBCOMMAND_DESC="Empty library file"
+SUBCOMMAND_HELP=$(cat <<EOH
+Empty library file which is loaded as fallback for some cases.
+EOH
+)
