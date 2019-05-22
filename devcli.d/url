@@ -31,7 +31,7 @@ case ${1} in
   ;;
   open)
     log "Alias given '${2}'"
-    [[ -n ${url[${2}]} ]] && open_file ${url[${2}]} || _show_all
+    [[ -n ${list[${2}]} ]] && open_file ${list[${2}]} || _show_all
   ;;
   *)
     [[ -z ${1} ]] && return # early return when no argument is given
