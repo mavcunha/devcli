@@ -15,7 +15,7 @@ EOH
 
 case ${1} in
   update)
-    twin_name="${2?'Missing twin command NAME'}"
+    twin_name="${2?'missing twin command NAME'}"
 
     in_cyan "Updating twin '${twin_name}' command files. \
       Use '-f' after NAME to force overwrite of files."

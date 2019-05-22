@@ -1,18 +1,26 @@
-# vim: ft=sh
+# vim: ft=sh spell
 SUBCOMMAND_DESC="${MAIN_COMMAND} documentation"
 SUBCOMMAND_HELP=$(cat <<EOH
-Usage ${MAIN_COMMAND} ${SUBCOMMAND}
+Usage ${MAIN_COMMAND} ${SUBCOMMAND} TOPIC
 
 main_functions             It parsers all functions in ${MAIN_COMMAND}
                            and shows a little description of what
                            they do.
 
+show_functions NAME        Similar to 'main_functions' but will parse
+                           any subcommand or library by NAME.
+
 cmdmap                     Information on CMDMAP feature to load
                            different implementation for the same
-                           subcommand.
+                           subcommand. It uses 'load_conf' feature.
 
 load_conf                  Function which loads external configuration
                            for subcommands.
+
+twin                       Information about having a copy of this
+                           tool so it can be extended to your project.
+                           Without needing to actually copy and change
+                           the ${MAIN_COMMAND} code.
 
 EOH
 )
@@ -66,9 +74,9 @@ If in 'conf/cmdmap' we find:
 ['date']='macos_date'
 
 This means that 'devcli' will delegate the subcommand parameters to the file
-'_macos_date' and that file has one implementation of 'to_date'. Now, let's
-say we want to use the same command on a linux machine. Unfortunetelly macos'
-and linux's date utility uses different arguments to parse a timestamp.
+'_macos_date' and that file has one implementation of 'to_date'. Now we want to
+use the same command on a linux machine. Unfortunetelly macos' and linux's date
+utility uses different arguments to parse a timestamp.
 
 MacOS:
 date -r TIMESTAMP
@@ -86,7 +94,7 @@ devcli date macos_to_date TIMESTAMP
 
 Which works but is not ideal. The point of abstracting the details of some
 commands is broken if we define different syntaxes for different OSes. Using
-the CMDMAP we can dynamically decide which implementation we wnat to use. In
+the CMDMAP we can dynamically decide which implementation we want to use. In
 'conf/cmdmap' we can write:
 
 date_handler=\$( __osx && echo "macos_date" || echo "linux_date" \)
@@ -132,6 +140,49 @@ available to the subcommand that called 'load_conf' as a readonly variable. The
 reason for be a readonly is just to avoid values being change indirectly and
 causing confusion. It is possible to lift this restriction if needed. See
 the 'url' subcommand for an example of this function in use.
+
+END_OF_DOC
+}
+
+function doc_twin() {
+  less -R <<END_OF_DOC
+$(__less_notice)
+twin - having a copy of ${MAIN_COMMAND} to extend for your project
+
+The sole purpose of this CLI is to provide quick shortcuts for day to day
+development. But projects are fundamentally different regarding their
+technology stacks and team practices. So whatever is provided as default
+commands and actions will not be enough for any sizable project and
+this is where the idea of a 'twin' comes up.
+
+A twin is basically the same CLI tool but with different subcommands and
+configurations that are particular for a project. The main difference
+is that instead of calling this CLI by one name you called it by another,
+and define different directories for configurations and subcommands. For example:
+
+Let's create a twin CLI called 'snap', the first thing is to create a sym link
+with our new tool name:
+
+ln -s ${MAIN_COMMAND} snap
+
+Now if you call 'snap' instead of ${MAIN_COMMAND} you will see that it does
+all the same things it did before. This is because is still reading from
+the same directories. Let's change this exporting two directories:
+
+export SNAP_CONF_DIR=/some/dir/snap/conf
+export SNAP_SUBCMD_DIR=/some/dir/snap/subcommands
+
+If you call 'snap' this time it will not show any subcommands (assuming the
+dirs are empty). You can now extend the behavior of your new tool
+by creating subcommands and configurations as you see fit.
+
+What about extending? If you want to bring all files from ${MAIN_COMMAND} to
+your snap tool and only create new commands you can use:
+
+${MAIN_COMMAND} twin update
+
+This command will copy all files to your new tool and you can extend them and
+grow your own CLI.
 
 END_OF_DOC
 }
