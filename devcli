@@ -136,12 +136,14 @@ fi
 # evaluate if we have been called with a subcommand
 # like 'MAIN_COMMAND SUBCMD' or just 'MAIN_COMMAND'
 function __no_subcmd() {
+  # __no_subcmd - returns if a subcommand was given or not
   log "called __no_subcmd()"
   [[ -z ${SUBCOMMAND} ]]
 }
 
 # util function to output assoc arrays
 function __assoc_array_to_string() {
+  # __assoc_array_to_string - returns an assoc array as a string for log output
   local -n assoc_array="${1}"
   for k in ${!assoc_array[@]}; do
     values="${values}[${k}]=${assoc_array[${k}]} "
@@ -159,6 +161,7 @@ load_conf cmdmap
 # Lists all subcommands ignoring those with a leading "_"
 # which are libraries
 function _list_commands() {
+  # _list_commands - lists all subcommands and ignore libraries
   cat <<EOU
   usage: ${MAIN_COMMAND} [-h|-?|--help|help] [-l|--libs] [--version] [--debug] [SUBCOMMAND]
 
@@ -186,9 +189,8 @@ EOU
   exit 1
 }
 
-# List only libraries and ignore commands, this is
-# the opposite of _list_commands()
 function _list_libraries() {
+  # _list_libraries - list all libraries and ignore subcommands
   cat <<EOU
 
   Libraries available ('${MAIN_COMMAND} LIBRARY' for more information):
@@ -207,6 +209,7 @@ EOU
 }
 
 function _subcommand_help() {
+  # _subcommand_help - display SUBCOMMAND_HELP defined in subcommands
   local subcmd=${1}
   local subhelp=${2}
   cat <<EOU
@@ -220,10 +223,12 @@ EOU
 }
 
 function _help() {
+  # _help - display current subcommand help
   _subcommand_help ${SUBCOMMAND} "${SUBCOMMAND_HELP}"
 }
 
 function _handle_subcommand() {
+  # _handle_subcommand - if args are given call subcommand if not call for help
   local SUBCOMMAND=${1}; shift 1
   local ACTION="${@}"
 

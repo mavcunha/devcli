@@ -17,14 +17,37 @@ load_conf                  Function which loads external configuration
 EOH
 )
 
-function main_functions() {
-  grep -A 1 -E "^function" "${ROOT_DIR}/${MAIN_COMMAND}"
-}
-
 function __less_notice() {
   in_cyan "Using 'less' to show this doc, type 'q' to exit"
 }
-function cmdmap() {
+
+function doc_main_functions() {
+  less -R <<END_OF_DOC
+  $(__less_notice)
+Functions with '_' prefix are regarded as private functions
+and should not be used outside its scope.
+
+Parsing functions from '${MAIN_COMMAND}':
+
+$(grep -A 1 -E "^function" "${ROOT_DIR}/${MAIN_COMMAND}")
+END_OF_DOC
+}
+
+function doc_show_functions() {
+  local file="${1?'Missing file name'}"
+  less -R <<END_OF_DOC
+  $(__less_notice)
+Functions with '_' prefix are regarded as private functions
+and should not be used outside its scope.
+
+Parsing functions from '${file}':
+
+$(grep -A 1 -E "^function" "${SUBCOMMANDS_DIR}/${file}")
+END_OF_DOC
+
+}
+
+function doc_cmdmap() {
   less -R <<END_OF_DOC
 $(__less_notice)
 CMDMAP - Mapping subcommands to different implementations
@@ -82,10 +105,9 @@ you can explore the files 'conf/cmdmap', 'devcli.d/date',
 END_OF_DOC
 }
 
-function load_conf() {
+function doc_load_conf() {
   less -R <<END_OF_DOC
 $(__less_notice)
-
 load_conf CONFIGURATION_FILE
 
 This is a helper to externalizer some data out of a subcommand. 'load_conf'
@@ -118,7 +140,8 @@ END_OF_DOC
 # this must be the last code to be executed on
 # this file for it to work properly. Add any other functions
 # before this.
+log "docs called with '${1}'"
 [[ -n "${1}" ]] \
-  && (type -t "${1}" | grep -qE "^function" &> /dev/null \
-  && ${1} \
+  && (type -t "doc_${1}" | grep -qE "^function" &> /dev/null \
+  && "doc_${1}" "${2:-''}" \
   || error "'${1}' documentation not found.")

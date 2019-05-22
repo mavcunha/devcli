@@ -2,7 +2,7 @@
 SUBCOMMAND_DESC="Environment loaded for all  commands"
 SUBCOMMAND_HELP=$(cat <<EOH
 This file is loaded before calling other subcommands,
-functions and variables will be available to all
+variables and functions will be available to all
 subcommands.
 EOH
 )
@@ -10,12 +10,14 @@ EOH
 # A helper function...
 # that returns true if running on OSX
 function __osx() {
+  # __osx - return if we are running in 'Darwin' (macos)
   [[ $(uname) == "Darwin" ]]
 }
 
 # This will open a file with open in OSX
 # or try xdg-open on Ubuntu...
 function open_file() {
+  # open_file FILE - call an open file cmd on macos call 'open' otherwise call 'xdg-open'
   local file=${1}
   log "open_file(${file})"
   [[ -n ${file} ]] || return
