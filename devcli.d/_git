@@ -1,0 +1,11 @@
+# vim: ft=sh
+
+# This is a implementation for the 'vcs' subcommand
+# using git
+
+# sweepwip is a utility for status and updates on git
+# repositories in batch.
+
+function status() {
+  ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -abl
+}

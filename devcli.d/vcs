@@ -1,0 +1,14 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="Shortcut version control"
+SUBCOMMAND_HELP=$(cat <<EOH
+Usage ${MAIN_COMMAND} ${SUBCOMMAND}
+
+status           Show the current status off all projects
+                 under ${PROJECTS_DIR}
+
+EOH
+)
+
+function status() { error "not implemented"; }
+
+handle_interface ${@}

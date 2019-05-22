@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-MAIN_COMMAND_VERSION="1.1"
-
-MAIN_COMMAND=$(basename ${0})
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
-PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
+declare -r MAIN_COMMAND_VERSION="1.1"
+declare -r MAIN_COMMAND=$(basename ${0})
+declare -r ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
+declare -r PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
 
 # color output functions
 function _color()     { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
@@ -49,14 +48,6 @@ function dyn_value() {
   [[ -n ${v} ]] && echo ${v} || echo ${default}
 }
 
-# Variables that can be overriden by the environment:
-# CONFIGURATION_DIR points to where "load_conf" will look
-# SUBCOMMANDS_DIR is the main dir where commands are load from
-# DEBUG is turn on or off debug messages.
-CONFIGURATION_DIR=$(dyn_value "CONF_DIR" "${ROOT_DIR}/conf")
-SUBCOMMANDS_DIR=$(dyn_value "SUBCMD_DIR" "${ROOT_DIR}/${MAIN_COMMAND}.d")
-DEBUG=$(dyn_value "DEBUG" "")
-
 # log functions should be defined as soon as possible
 # so it become available for other functions
 # because of the 'tput' calls on and off to
@@ -70,6 +61,19 @@ function log() {
     tput -Txterm sgr0 >&2
   fi
 }
+
+# Variables that can be overriden by the environment:
+# CONFIGURATION_DIR points to where "load_conf" will look
+# SUBCOMMANDS_DIR is the main dir where commands are load from
+# DEBUG is turn on or off debug messages.
+declare -r CONFIGURATION_DIR=$(dyn_value "CONF_DIR" "${ROOT_DIR}/conf")
+declare -r SUBCOMMANDS_DIR=$(dyn_value "SUBCMD_DIR" "${ROOT_DIR}/${MAIN_COMMAND}.d")
+log "CONFIGURATION_DIR=${CONFIGURATION_DIR}"
+log "SUBCOMMANDS_DIR=${SUBCOMMANDS_DIR}"
+
+# flag for debug messages, it can be defined using
+# and environment variable or using the --debug flag
+DEBUG=$(dyn_value "DEBUG" "")
 
 function use() {
   # use LIB - loads library LIB in the current context
@@ -120,6 +124,7 @@ function handle_interface() {
     || error "can't load implementation for '${SUBCOMMAND}'"
 
   log "forwarding call '${@}' to implementation"
+  log "calling: ${1:-"false"} ${@:2}"
   ${1:-"false"} ${@:2}
 }
 

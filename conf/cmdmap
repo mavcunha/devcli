@@ -31,7 +31,9 @@ cmdmap['date']=${date_handler}
 # end of date example
 #############################################################
 
-
 # subcommand pass delegates to the
 # password-store implementation
 cmdmap['pass']="password-store"
+
+# use git as default VCS
+cmdmap['vcs']="git"
