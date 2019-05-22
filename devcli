@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 MAIN_COMMAND_VERSION="1.1"
 
 MAIN_COMMAND=$(basename ${0})
@@ -125,6 +124,8 @@ fi
 # environment settings that depend on a project
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
 
+# evaluate if we have been called with a subcommand
+# like 'devcli SUBCMD' or just 'devcli'
 function __no_subcmd() {
   log "called __no_subcmd()"
   [[ -z ${SUBCOMMAND} ]] && log "no subcommand given" && echo "true"
