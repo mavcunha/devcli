@@ -1,0 +1,40 @@
+# vim: ft=sh sw=2 ts=2 expandtab
+SUBCOMMAND_DESC="Utility for maintain copies of '${MAIN_COMMAND}'"
+SUBCOMMAND_HELP=$(cat <<EOH
+
+update NAME [-f]          Will copy all files in:
+                          ${SUBCOMMANDS_DIR}
+                          and
+                          ${CONFIGURATION_DIR}
+                          to the same directories defined for the twin
+                          tool defined by NAME. Unless '-f' is given
+                          this command won't overwrite any files.
+
+EOH
+)
+
+case ${1} in
+  update)
+    twin_name="${2?'Missing twin command NAME'}"
+
+    in_cyan "Updating twin '${twin_name}' command files. \
+      Use '-f' after NAME to force overwrite of files."
+
+    # dry run unless -f is given
+    [[ ${3:-""} == "-f" ]] && cp_flags="-Rv" || cp_flags="-nRv"
+
+    twin_cnf_dir="${twin_name^^}_CONF_DIR"
+    twin_sub_dir="${twin_name^^}_SUBCMD_DIR"
+
+    if [[ ! -d ${!twin_cnf_dir} || ! -d ${!twin_sub_dir} ]]; then
+      error "Directories ${twin_sub_dir} and ${twin_cnf_dir} must be defined."
+    fi
+
+    in_cyan "Copying files into twin configuration directory\n"
+    cp ${cp_flags} "${CONFIGURATION_DIR}/" "${!twin_cnf_dir}/"
+
+    in_cyan "\nCopying files into twin subcommands directory\n"
+    cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!twin_sub_dir}/"
+
+  ;;
+esac
