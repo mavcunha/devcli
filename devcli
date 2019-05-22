@@ -56,6 +56,9 @@ DEBUG=$(dyn_value "DEBUG" "")
 
 # log functions should be defined as soon as possible
 # so it become available for other functions
+# because of the 'tput' calls on and off to
+# change the debug message color there's
+# a performance penalty on heavy logging
 function log() {
   if [[ -n ${DEBUG} ]]; then
     tput -Txterm setaf 5 >&2
@@ -70,18 +73,46 @@ function use() {
   [[ -f ${lib} ]] && source ${lib} || error "Library '${lib}' not found"
 }
 
-function no_subcmd() {
-  log "no_subcmd()?"
-  [[ -z ${SUBCOMMAND} ]] \
-    && log "no subcommand given" \
-    && return
+function load_conf() {
+  local section="${1}"
+  log "loading configuration for: ${section}"
+  # this will declare ${section} as a global assoc array
+  # which can be used anywhere.
+  log "declaring ${section} as global associative array"
+  declare -Ag "${section}"
+  if [[ $(__no_subcmd) ]]; then
+    local conf="${CONFIGURATION_DIR}/${section}"
+    log "loading global configuration: ${conf}, if missing won't fail."
+    [[ -f ${conf} ]] && source "${conf}"
+  else
+    local conf="${CONFIGURATION_DIR}/${SUBCOMMAND}/${section}"
+    log "loading subcommand configuration: ${conf}, if missing will fail."
+    [[ -f ${conf} ]] && source "${conf}" \
+      || error "Configuration '${conf}' not found"
+  fi
+  # the assoc array is protected to avoid changes
+  # in these configurations after they are loaded
+  # just to avoid confusion
+  readonly "${section}"
 }
 
-function load_conf() {
-  no_subcmd && return
-  local conf="${CONFIGURATION_DIR}/${SUBCOMMAND}/${1}"
-  log "loading configuration: ${conf}"
-  [[ -f ${conf} ]] && source ${conf} || error "Configuration '${conf}' not found"
+# loads file pointed by cmdmap key
+# if ['SUBCOMMAND']='FILE' in cmdmap it will
+# load 'FILE' iff the command if SUBCOMMAND is being
+# called. This function allows for loading different
+# implementations for the same SUBCOMMAND, example:
+#
+# 'devcli pass' can be handled by keychain or password-store
+#
+function handle_interface() {
+  __no_subcmd && return
+
+  log "handling interface for '${SUBCOMMAND}'"
+  use "${cmdmap[${SUBCOMMAND}]:-empty}" \
+    || error "can't load implementation for '${SUBCOMMAND}'"
+
+  log "forwarding call '${@}' to implementation"
+  ${1:-"false"} ${@:2}
 }
 
 # add itself to PATH if needed
@@ -93,6 +124,28 @@ fi
 
 # environment settings that depend on a project
 [[ -f ${SUBCOMMANDS_DIR}/_environment ]] && . ${SUBCOMMANDS_DIR}/_environment
+
+function __no_subcmd() {
+  log "called __no_subcmd()"
+  [[ -z ${SUBCOMMAND} ]] && log "no subcommand given" && echo "true"
+}
+
+# util function to output assoc arrays
+function __assoc_array_to_string() {
+  local -n assoc_array="${1}"
+  for k in ${!assoc_array[@]}; do
+    values="${values}[${k}]=${assoc_array[${k}]} "
+  done
+  echo "${values}"
+}
+
+###############################################################
+# subcommand mapping
+# load any mapping between subcommands
+# and implementations, see: conf/cmdmap
+load_conf cmdmap
+log "loaded cmdmap as '$(__assoc_array_to_string cmdmap)'"
+###############################################################
 
 # Lists all subcommands ignoring those with a leading "_"
 # which are libraries

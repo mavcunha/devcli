@@ -1,0 +1,22 @@
+##############################################################
+# This configuration defines the cases where 'handle_interface'
+# is used. A subcommand can have different implementations
+# while keeping the same CLI.
+#
+# As an example a command like 'devcli pass get ping' will
+# retrieve a password by the 'ping' key. This can be
+# implemented using different methods of password keeping.
+
+# To select one implementation for a subcommand
+# interface use the following syntax:
+#
+# ["SUBCOMMAND"]="implementation_to_use"
+#
+# If the SUBCOMMAND is not found in this map it is assumed
+# the SUBCOMMAND is the concrete implementation. Since
+# the implementation is loaded using the 'use' function,
+# implementatons must be named with a '_' prefix.
+
+# subcommand pass delegates to the
+# password-store implementation
+cmdmap['pass']="password-store"
