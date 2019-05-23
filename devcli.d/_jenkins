@@ -1,0 +1,41 @@
+# vim: ft=sh
+
+# Jenkins functions
+
+load_conf jenkins_conf
+load_conf jenkins_jobs
+
+#  /lastBuild/api/json?tree=result | jq -r .result
+
+function __status_color() {
+  case ${1} in
+    SUCCESS) green_box ${1};;
+    FAILURE) red_box ${1};;
+    null)    magenta_box 'RUNNING';;
+    *)       yellow_box ${1};;
+  esac
+}
+
+function __formatted_status() {
+  local job_alias="${1}"
+  local job_status="${2}"
+
+  line=$(printf ".%.0s" {1..60}) # large sequence of '.' for formatting
+  j="${job_alias}|${jenkins_jobs[${job_alias}]}" # compose job name
+
+  printf "%s%s%s\n" "$(in_yellow ${j})"  "${line:${#j}}" "$(__status_color ${job_status})"
+}
+
+function status() {
+  local filter_by="${1-.*}"
+  log "filtering by: ${filter_by}"
+  for k in "${!jenkins_jobs[@]}"; do
+    if [[ ${k} =~ ${filter_by} ]]; then
+      log "matched job: ${k}, fetching lastBuild result"
+      curr_status=$(http --body ${jenkins_conf["url"]}/job/${jenkins_jobs[${k}]}/lastBuild/api/json?tree=result | jq -r .result)
+      __formatted_status "${k}" "${curr_status}"
+      fi
+  done
+}
+
+

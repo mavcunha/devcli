@@ -1,0 +1,17 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="Subcommand description"
+SUBCOMMAND_HELP=$(cat <<EOH
+
+status [NAME]                    Should list the current status for pipelines
+                                 or jobs in our CI server that we are interested
+                                 in follow up. If NAME is given we should filter
+                                 our pipeline name list by NAME.
+
+EOH
+)
+
+function status() {
+  error "not implemented."
+}
+
+handle_interface ${@}

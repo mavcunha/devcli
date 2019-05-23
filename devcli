@@ -5,18 +5,27 @@ declare -r ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd)"
 declare -r PROJECTS_DIR="$(cd ${ROOT_DIR}/.. && pwd)"
 
 # color output functions
-function _color()     { tput -Txterm setaf ${1}; echo -e ${2}; tput -Txterm sgr0; }
+function _color()     { tput -Txterm setaf ${1}; echo -ne ${2}; tput -Txterm sgr0; }
 function in_red()     { _color 1 "${1}"; } # use for failures
 function in_green()   { _color 2 "${1}"; } # use for successes
 function in_yellow()  { _color 3 "${1}"; } # use for warnings / attention
 function in_magenta() { _color 5 "${1}"; } # use for debug messages
 function in_cyan()    { _color 6 "${1}"; } # use for main actions / progress
 
+function __box() {
+  echo "$(in_cyan '[')$(echo "${1}" )$(in_cyan ']')"
+}
+
+function red_box()     { __box "$(in_red "${1}")";     }
+function green_box()   { __box "$(in_green "${1}")";   }
+function yellow_box()  { __box "$(in_yellow "${1}")";  }
+function magenta_box() { __box "$(in_magenta "${1}")"; }
+
 # This is a shortcut for exiting with error
 # calling error will stop the script
 function error() {
   # error MSG - show error message in the form of "ERROR: MSG" and exit
-  in_red "ERROR: ${1}"
+  in_red "ERROR: ${1}\n"
   exit 1
 }
 
@@ -24,7 +33,7 @@ function error() {
 # these won't stop the execution of the script
 function warn() {
   # warn MSG - show a warning in the form of "WARN: MSG"
-  in_yellow "WARN: ${1}"
+  in_yellow "WARN: ${1}\n"
 }
 
 # stop on outdated bash
@@ -269,7 +278,7 @@ case ${_arg_subcmd} in
   *)
     log "arguments '${*}'"
     log "checking if '${SUBCOMMANDS_DIR}/${_arg_subcmd}' exists"
-    [[ ! -f "${SUBCOMMANDS_DIR}/${_arg_subcmd}" ]] && in_red "'${_arg_subcmd}' not found" && _list_commands
+    [[ ! -f "${SUBCOMMANDS_DIR}/${_arg_subcmd}" ]] && in_red "'${_arg_subcmd}' not found\n" && _list_commands
     shift 1
     _handle_subcommand ${_arg_subcmd} "${@}"
     ;;

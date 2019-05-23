@@ -1,0 +1,2 @@
+# The jenkins main URL of our server
+jenkins_conf['url']='https://builds.apache.org'

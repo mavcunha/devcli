@@ -37,3 +37,6 @@ cmdmap['pass']="password-store"
 
 # use git as default VCS
 cmdmap['vcs']="git"
+
+# continuous integration
+cmdmap['ci']="jenkins"

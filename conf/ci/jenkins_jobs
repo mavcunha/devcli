@@ -1,0 +1,3 @@
+# List of jobs we are interested in follow up
+jenkins_jobs['hbase']='HBase-1.3-IT'
+jenkins_jobs['kafka']='kafka-2.3-jdk8'
