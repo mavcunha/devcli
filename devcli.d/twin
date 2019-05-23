@@ -10,6 +10,9 @@ update NAME [-f]          Will copy all files in:
                           tool defined by NAME. Unless '-f' is given
                           this command won't overwrite any files.
 
+create NAME DIR           This will create a twin (a copy of this tool)
+                          which you can extend and change it.
+
 EOH
 )
 
@@ -27,7 +30,7 @@ case ${1} in
     twin_sub_dir="${twin_name^^}_SUBCMD_DIR"
 
     if [[ ! -d ${!twin_cnf_dir} || ! -d ${!twin_sub_dir} ]]; then
-      error "Directories ${twin_sub_dir} and ${twin_cnf_dir} must be defined."
+      error "Env variables ${twin_sub_dir} and ${twin_cnf_dir} must be defined."
     fi
 
     in_cyan "Copying files into twin configuration directory\n"
@@ -35,6 +38,44 @@ case ${1} in
 
     in_cyan "\nCopying files into twin subcommands directory\n"
     cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!twin_sub_dir}/"
+  ;;
+  create)
+    twin_name="${2?'missing twin command NAME parameter'}"
+    twin_name="${twin_name,,}" # make it lowercase
+    in_cyan "Creating '${twin_name}' as twin copy of this tool"
 
+    twin_dir="${3?'missing twin command DIR parameter'}"
+    [[ ! -d "${twin_dir}" ]] \
+      && error "'${twin_dir}' must be a directory."
+
+    twin_project_dir="${twin_dir%/}/${twin_name}"
+    log "project dir set as: ${twin_project_dir}"
+    [[ -d "${twin_project_dir}" ]] \
+      && error "${twin_project_dir} already exists, use 'twin update' instead"
+
+    twin_subcmd_dir="${twin_project_dir}/${twin_name}.d"
+    twin_config_dir="${twin_project_dir}/conf"
+    log "subcmd dir set as: ${twin_subcmd_dir}"
+    log "config dir set as: ${twin_config_dir}"
+
+    in_cyan "Creating directory: ${twin_project_dir}"
+    mkdir "${twin_project_dir}"
+    in_cyan "Creating subcmd directory: ${twin_subcmd_dir}"
+    mkdir "${twin_subcmd_dir}"
+    in_cyan "Creating configuration directory: ${twin_config_dir}"
+    mkdir "${twin_config_dir}"
+
+    in_cyan "Creating symbolic link from '${MAIN_COMMAND}' to '${twin_name}'"
+    ln -s "${ROOT_DIR}/${MAIN_COMMAND}" "${twin_project_dir}/${twin_name}"
+
+    in_cyan "Exporting configuration environment variables for '${twin_name}'"
+    export "${twin_name^^}_CONF_DIR=${twin_config_dir}"
+    export "${twin_name^^}_SUBCMD_DIR=${twin_subcmd_dir}"
+
+    in_cyan "Running update on '${twin_name}'"
+    log "about to call: ${MAIN_COMMAND} ${SUBCOMMAND} update ${twin_name}"
+    ${MAIN_COMMAND} ${SUBCOMMAND} update ${twin_name}
+
+    in_green "${twin_name} setup finished."
   ;;
 esac

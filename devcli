@@ -234,8 +234,8 @@ function _help() {
 
 function _handle_subcommand() {
   # _handle_subcommand - if args are given call subcommand if not call for help
-  local SUBCOMMAND=${1}; shift 1
-  local ACTION="${@}"
+  local -r SUBCOMMAND=${1}; shift 1
+  local -r ACTION="${@}"
 
   log "running ${SUBCOMMANDS_DIR}/${SUBCOMMAND} ${ACTION} "
   . "${SUBCOMMANDS_DIR}/${SUBCOMMAND}" ${ACTION}
