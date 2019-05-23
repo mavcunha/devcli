@@ -9,3 +9,7 @@
 function status() {
   ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -abl
 }
+
+function update() {
+  ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -ku
+}

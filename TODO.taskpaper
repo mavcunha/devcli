@@ -1,11 +1,7 @@
 DevCLI TODOs:
-	- password functions
-		- pass
-		-	keychain
 	-	continuous integration server
 		- jenkins functions
 	- version control system
-		- git functions (sweepwip behavior)
 		- git log parsing
 	- build system / compilation
 		- maven functions (run tests and such)
