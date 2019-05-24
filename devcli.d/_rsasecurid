@@ -76,7 +76,7 @@ function rsasecurid_pin() {
   local KEY_IN_KEYCHAIN=${1:-"rsatoken"}
   log "using '${KEY_IN_KEYCHAIN}' as key to serch in KeyChain"
   local pin=$(security -q find-generic-password -gl ${KEY_IN_KEYCHAIN} 2>&1  | egrep '^password' | awk -F\\\" '{print $2}')
-  [[ -z ${pin} ]] && error "PIN is empty, is '${KEY_IN_KEYCHAIN}' saved in your KeyChain?"
+  [[ -z ${pin} ]] && error "PIN is empty, is '${KEY_IN_KEYCHAIN}' saved in your KeyChain?\n"
   log "got pin: '${pin}'"
   echo ${pin}
 }

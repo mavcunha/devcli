@@ -17,7 +17,7 @@ tunnels:
 
 Functions:
 
-$(in_cyan 'ngrok_start "mygit myservice"')
+$(in_cyan "ngrok_start \"mygit myservice\"\n")
   This will start 'ngrok' tunnels and output the addresses created. If NGROK_CONFIG is
   not defined it will use whatever is configured in ~/.ngrok
 EOH

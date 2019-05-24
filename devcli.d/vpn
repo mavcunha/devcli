@@ -4,6 +4,7 @@ use 'vpn'        # functions to interact of OSX VPN
 
 SUBCOMMAND_DESC="Example of VPN connection automation"
 SUBCOMMAND_HELP=$(cat <<EOH
+
 readme        Read this first! Setup and notes.
 connect       Fetch PIN, get token from SecurID and connect with the VPN
 token         Get your token from SecurID
@@ -16,39 +17,39 @@ EOH
 
 case ${1} in
   connect)
-    in_cyan "Checking VPN current status"
+    in_cyan "Checking VPN current status\n"
     [[ $(vpn_status) != "Disconnected" ]] && error "VPN is Connected or Connecting, stopping."
 
-    in_cyan "Fetching PIN from KeyChain"
+    in_cyan "Fetching PIN from KeyChain\n"
     pin=$(rsasecurid_pin)
-    [[ -z ${pin} ]] && error "Couldn't get your PIN, stopping."
+    [[ -z ${pin} ]] && error "Couldn't get your PIN, stopping.\n"
 
-    in_cyan "Getting token from SecurID"
+    in_cyan "Getting token from SecurID\n"
     token=$(rsasecurid_token ${pin})
-    [[ -z ${token} ]] && error "Couldn't get token from SecurID. Tweak delay times?"
+    [[ -z ${token} ]] && error "Couldn't get token from SecurID. Tweak delay times?\n"
 
-    in_cyan "Starting VPN connection"
+    in_cyan "Starting VPN connection\n"
     vpn_start_connection $(vpn_guess_service_name)
 
-    in_cyan "Filling password field with token"
+    in_cyan "Filling password field with token\n"
     vpn_attempt_to_enter_password ${token}
   ;;
   token)
-    in_cyan "Fetching token from SecurID"
+    in_cyan "Fetching token from SecurID\n"
     echo $(rsasecurid_token $(rsasecurid_pin))
   ;;
   start)
-    in_cyan "Starting VPN"
+    in_cyan "Starting VPN\n"
     vpn_start_connection $(vpn_guess_service_name)
   ;;
   status)
-    echo $(in_cyan "VPN Status: $(vpn_status)")
+    echo $(in_cyan "VPN Status: $(vpn_status)\n")
   ;;
   servicename)
-    echo $(in_cyan "VPN Service name: $(vpn_guess_service_name)")
+    echo $(in_cyan "VPN Service name: $(vpn_guess_service_name)\n")
   ;;
   pin)
-    echo $(in_cyan "PIN Number: $(rsasecurid_pin)")
+    echo $(in_cyan "PIN Number: $(rsasecurid_pin)\n")
   ;;
   readme)
 less <<END_OF_README

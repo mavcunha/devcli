@@ -21,7 +21,7 @@ case ${1} in
     twin_name="${2?'missing twin command NAME'}"
 
     in_cyan "Updating twin '${twin_name}' command files. \
-      Use '-f' after NAME to force overwrite of files."
+      Use '-f' after NAME to force overwrite of files.\n"
 
     # dry run unless -f is given
     [[ ${3:-""} == "-f" ]] && cp_flags="-Rv" || cp_flags="-nRv"
@@ -30,52 +30,52 @@ case ${1} in
     twin_sub_dir="${twin_name^^}_SUBCMD_DIR"
 
     if [[ ! -d ${!twin_cnf_dir} || ! -d ${!twin_sub_dir} ]]; then
-      error "Env variables ${twin_sub_dir} and ${twin_cnf_dir} must be defined."
+      error "Env variables ${twin_sub_dir} and ${twin_cnf_dir} must be defined.\n"
     fi
 
-    in_cyan "Copying files into twin configuration directory\n"
+    in_cyan "Copying files into twin configuration directory\n\n"
     cp ${cp_flags} "${CONFIGURATION_DIR}/" "${!twin_cnf_dir}/"
 
-    in_cyan "\nCopying files into twin subcommands directory\n"
+    in_cyan "\nCopying files into twin subcommands directory\n\n"
     cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!twin_sub_dir}/"
   ;;
   create)
     twin_name="${2?'missing twin command NAME parameter'}"
     twin_name="${twin_name,,}" # make it lowercase
-    in_cyan "Creating '${twin_name}' as twin copy of this tool"
+    in_cyan "Creating '${twin_name}' as twin copy of this tool\n"
 
     twin_dir="${3?'missing twin command DIR parameter'}"
     [[ ! -d "${twin_dir}" ]] \
-      && error "'${twin_dir}' must be a directory."
+      && error "'${twin_dir}' must be a directory.\n"
 
     twin_project_dir="${twin_dir%/}/${twin_name}"
     log "project dir set as: ${twin_project_dir}"
     [[ -d "${twin_project_dir}" ]] \
-      && error "${twin_project_dir} already exists, use 'twin update' instead"
+      && error "${twin_project_dir} already exists, use 'twin update' instead\n"
 
     twin_subcmd_dir="${twin_project_dir}/${twin_name}.d"
     twin_config_dir="${twin_project_dir}/conf"
     log "subcmd dir set as: ${twin_subcmd_dir}"
     log "config dir set as: ${twin_config_dir}"
 
-    in_cyan "Creating directory: ${twin_project_dir}"
+    in_cyan "Creating directory: ${twin_project_dir}\n"
     mkdir "${twin_project_dir}"
-    in_cyan "Creating subcmd directory: ${twin_subcmd_dir}"
+    in_cyan "Creating subcmd directory: ${twin_subcmd_dir}\n"
     mkdir "${twin_subcmd_dir}"
-    in_cyan "Creating configuration directory: ${twin_config_dir}"
+    in_cyan "Creating configuration directory: ${twin_config_dir}\n"
     mkdir "${twin_config_dir}"
 
-    in_cyan "Creating symbolic link from '${MAIN_COMMAND}' to '${twin_name}'"
+    in_cyan "Creating symbolic link from '${MAIN_COMMAND}' to '${twin_name}'\n"
     ln -s "${ROOT_DIR}/${MAIN_COMMAND}" "${twin_project_dir}/${twin_name}"
 
-    in_cyan "Exporting configuration environment variables for '${twin_name}'"
+    in_cyan "Exporting configuration environment variables for '${twin_name}'\n"
     export "${twin_name^^}_CONF_DIR=${twin_config_dir}"
     export "${twin_name^^}_SUBCMD_DIR=${twin_subcmd_dir}"
 
-    in_cyan "Running update on '${twin_name}'"
+    in_cyan "Running update on '${twin_name}'\n"
     log "about to call: ${MAIN_COMMAND} ${SUBCOMMAND} update ${twin_name}"
     ${MAIN_COMMAND} ${SUBCOMMAND} update ${twin_name}
 
-    in_green "${twin_name} setup finished."
+    in_green "${twin_name} setup finished.\n"
   ;;
 esac

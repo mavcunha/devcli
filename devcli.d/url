@@ -4,7 +4,7 @@ SUBCOMMAND_DESC="Useful URL list"
 load_conf list
 
 function _show_all() {
-  in_cyan "Current URL list:"
+  in_cyan "Current URL list:\n"
   printf "%-20s %s\n" "ALIAS" "URL"
   for name in "${!list[@]}";do
     printf "%-20s %s\n" ${name} ${list[${name}]}

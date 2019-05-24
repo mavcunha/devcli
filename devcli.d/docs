@@ -30,7 +30,7 @@ EOH
 )
 
 function __less_notice() {
-  in_cyan "Using 'less' to show this doc, type 'q' to exit"
+  in_cyan "Using 'less' to show this doc, type 'q' to exit.\n"
 }
 
 function doc_main_functions() {
