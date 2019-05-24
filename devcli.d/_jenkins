@@ -1,7 +1,6 @@
 # vim: ft=sh
 
 # Jenkins functions
-
 load_conf jenkins_conf
 load_conf jenkins_jobs
 
@@ -32,7 +31,9 @@ function ci_status() {
   for k in "${!jenkins_jobs[@]}"; do
     if [[ ${k} =~ ${filter_by} ]]; then
       log "matched job: ${k}, fetching lastBuild result"
-      curr_status=$(http --body ${jenkins_conf["url"]}/job/${jenkins_jobs[${k}]}/lastBuild/api/json?tree=result | jq -r .result)
+      api_call="${jenkins_conf["url"]}/job/${jenkins_jobs[${k}]}/lastBuild/api/json?tree=result"
+      log "calling: ${api_call}"
+      curr_status=$(http --body ${api_call} | jq -r .result)
       __formatted_status "${k}" "${curr_status}"
       fi
   done
