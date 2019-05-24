@@ -4,6 +4,9 @@
 # libraries.
 SUBCOMMAND_DESC="Empty library file"
 SUBCOMMAND_HELP=$(cat <<EOH
-Empty library file which is loaded as fallback for some cases.
+
+It seems 'cmdmap' does not have a mapping for '${SUBCOMMAND}'.
+Check: $(in_yellow "${CONFIGURATION_DIR}/cmdmap")
+Ensure there's a mpping from '${SUBCOMMAND}' to an implementation.
 EOH
 )
