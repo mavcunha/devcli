@@ -132,8 +132,8 @@ function handle_interface() {
   use "${cmdmap[${SUBCOMMAND}]:-empty}" \
     || error "can't load implementation for '${SUBCOMMAND}'"
 
-  log "forwarding call '${@}' to implementation"
-  log "calling: ${1:-"false"} ${@:2}"
+  log "forwarding call '${@}' to implementation '${cmdmap[${SUBCOMMAND}]}'"
+  log "calling: cmd:${1:-"false"} args:${@:2}"
   ${1:-"false"} ${@:2}
 }
 
