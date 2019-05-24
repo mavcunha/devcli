@@ -1,2 +1,9 @@
 # The jenkins main URL of our server
 jenkins_conf['url']='https://builds.apache.org'
+
+# These are not the actual values but
+# the keys which point to the keys
+# used to get the secret information
+# using 'pass'
+jenkins_user['user']='jenkins/userid'
+jenkins_pass['pass']='jenkins/apitoken'

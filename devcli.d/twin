@@ -22,21 +22,59 @@ EOH
 function _check_env() {
     local name="${1}"
     # these variable will be global to this script
-    local -g CNF_DIR="${name^^}_CONF_DIR"
-    local -g SUB_DIR="${name^^}_SUBCMD_DIR"
+    local c_dir="${name^^}_CONF_DIR"
+    local s_dir="${name^^}_SUBCMD_DIR"
 
-    if [[ ! -d ${!CNF_DIR} || ! -d ${!SUB_DIR} ]]; then
-      error "Env variables ${SUB_DIR} and ${CNF_DIR} must be defined.\n"
+    if [[ ! -d ${!c_dir} || ! -d ${!s_dir} ]]; then
+      error "Env variables ${s_dir} and ${c_dir} must be defined.\n"
     fi
+
+    log "Exporting CNF_DIR and SUB_DIR variables."
+    local -g CNF_DIR="${!c_dir}"
+    local -g SUB_DIR="${!s_dir}"
+}
+
+function _print_diff_result() {
+  local file="${1}"
+  local result="${2}"
+
+  sep=$(printf ".%.0s" {1..25}) # large sequence of '.' for formatting
+
+  printf "%s%s%s\n" "${file}" "${sep:${#f}}" "${result}"
+}
+
+function _check_diff_in_dir() {
+  local source_dir="${1}"
+  local target_dir="${2}"
+  echo ${source_dir}
+  local partial_source_dir=${source_dir%${target_dir}/}
+  local partial_target_dir=${target_dir%${source_dir}/}
+
+  while read line; do
+    f=${line#${source_dir}/}
+    diff --brief ${source_dir}/${f} ${target_dir}/${f} &> /dev/null \
+      && _print_diff_result "${partial_source_dir}/${f} ${partial_target_dir}/${f}" "$(green_box 'SAME' )"  \
+      || _print_diff_result "${f}" "$(yellow_box 'DIFF' )"
+
+  done <<< $(find ${source_dir} -type f)
 }
 
 case ${1} in
-  status)
+  diff)
     twin_name="${2?'missing twin command NAME'}"
     _check_env "${twin_name}"
 
   ;;
+  status)
+    twin_name="${2?'missing twin command NAME'}"
+    _check_env "${twin_name}"
 
+    in_cyan "Checking configurations:\n"
+    _check_diff_in_dir "${CONFIGURATION_DIR}" "${CNF_DIR}"
+
+    in_cyan "\nChecking subcommands:\n"
+    _check_diff_in_dir "${SUBCOMMANDS_DIR}"   "${SUB_DIR}"
+  ;;
   update)
     twin_name="${2?'missing twin command NAME'}"
     _check_env "${twin_name}"
@@ -53,7 +91,6 @@ case ${1} in
     in_cyan "\nCopying files into twin subcommands directory\n"
     cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!SUB_DIR}/"
   ;;
-
   create)
     twin_name="${2?'missing twin command NAME parameter'}"
     twin_name="${twin_name,,}" # make it lowercase

@@ -19,9 +19,9 @@ function __formatted_status() {
   local job_alias="${1}"
   local job_status="${2}"
 
-  line=$(printf ".%.0s" {1..60}) # large sequence of '.' for formatting
   j="${job_alias}|${jenkins_jobs[${job_alias}]}" # compose job name
 
+  line=$(printf ".%.0s" {1..60}) # large sequence of '.' for formatting
   printf "%s%s%s\n" "$(in_yellow ${j})"  "${line:${#j}}" "$(__status_color ${job_status})"
 }
 
