@@ -6,10 +6,10 @@
 # sweepwip is a utility for status and updates on git
 # repositories in batch.
 
-function status() {
+function vcs_status() {
   ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -abl
 }
 
-function update() {
+function vcs_update() {
   ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -ku
 }

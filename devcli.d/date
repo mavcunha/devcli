@@ -9,6 +9,6 @@ to_date UNIX_TIMESTAMP         Takes a UNIX_TIMESTAMP and outputs and formmated
 EOH
 )
 
-function to_date() { error "not implemented"; }
+function date_to_date() { error "not implemented"; }
 
 handle_interface ${@}

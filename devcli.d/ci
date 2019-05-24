@@ -10,7 +10,7 @@ status [NAME]                    Should list the current status for pipelines
 EOH
 )
 
-function status() {
+function ci_status() {
   error "not implemented."
 }
 

@@ -26,7 +26,7 @@ function __formatted_status() {
   printf "%s%s%s\n" "$(in_yellow ${j})"  "${line:${#j}}" "$(__status_color ${job_status})"
 }
 
-function status() {
+function ci_status() {
   local filter_by="${1-.*}"
   log "filtering by: ${filter_by}"
   for k in "${!jenkins_jobs[@]}"; do

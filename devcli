@@ -134,7 +134,7 @@ function handle_interface() {
 
   log "forwarding call '${@}' to implementation '${cmdmap[${SUBCOMMAND}]}'"
   log "calling: cmd:${1:-"false"} args:${@:2}"
-  ${1:-"false"} ${@:2}
+  [[ -n ${1} ]] && ${SUBCOMMAND}_${1:-"false"} ${@:2}
 }
 
 # add itself to PATH if needed

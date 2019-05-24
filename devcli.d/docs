@@ -14,6 +14,10 @@ cmdmap                     Information on CMDMAP feature to load
                            different implementation for the same
                            subcommand. It uses 'load_conf' feature.
 
+handle_interface           This should be called by the general
+                           command which behaves as a 'interface' for
+                           different implementations using 'cmdmap'.
+
 load_conf                  Function which loads external configuration
                            for subcommands.
 
@@ -75,7 +79,7 @@ If in 'conf/cmdmap' we find:
 
 This means that 'devcli' will delegate the subcommand parameters to the file
 '_macos_date' and that file has one implementation of 'to_date'. Now we want to
-use the same command on a linux machine. Unfortunetelly macos' and linux's date
+use the same command on a linux machine. Unfortunately macos' and linux's date
 utility uses different arguments to parse a timestamp.
 
 MacOS:
@@ -101,7 +105,7 @@ date_handler=\$( __osx && echo "macos_date" || echo "linux_date" \)
 cmdmap["date"]="\${date_handler\}"
 
 In this case depending on which OS the devcli is running it will load different
-implementaions while it keeps the same interface so:
+implementations while it keeps the same interface so:
 
 devcli date to_date TIMESTAMP
 
@@ -119,8 +123,8 @@ $(__less_notice)
 load_conf CONFIGURATION_FILE
 
 This is a helper to externalizer some data out of a subcommand. 'load_conf'
-expects to find a file in 'conf/SUBCOMMAND/CONFIGURATION_FILE' and will fail
-if can't find one. The file syntax is roughtly a bash associative array.
+expects to find a file in 'conf/SUBCOMMAND/CONFIGURATION_FILE' and will fail if
+can't find one. The file syntax is a bash associative array.
 
 on the subcommand we call:
 
@@ -136,8 +140,8 @@ back in the subcommand we can now:
 echo '\${myconf['param']}'
 
 The 'myconf' associative array defined in the CONFIGURATION_FILE will be
-available to the subcommand that called 'load_conf' as a readonly variable. The
-reason for be a readonly is just to avoid values being change indirectly and
+available to the subcommand that called 'load_conf' as a read-only variable. The
+reason for be a read-only is just to avoid values being change indirectly and
 causing confusion. It is possible to lift this restriction if needed. See
 the 'url' subcommand for an example of this function in use.
 
@@ -152,16 +156,16 @@ twin - having a copy of ${MAIN_COMMAND} to extend for your project
 The sole purpose of this CLI is to provide quick shortcuts for day to day
 development. But projects are fundamentally different regarding their
 technology stacks and team practices. So whatever is provided as default
-commands and actions will not be enough for any sizable project and
-this is where the idea of a 'twin' comes up.
+commands and actions will not be enough for any sizable project and this is
+where the idea of a 'twin' comes up.
 
 A twin is basically the same CLI tool but with different subcommands and
-configurations that are particular for a project. The main difference
-is that instead of calling this CLI by one name you called it by another,
-and define different directories for configurations and subcommands. For example:
+configurations that are particular for a project. The main difference is that
+instead of calling this CLI by one name you called it by another, and define
+different directories for configurations and subcommands. For example:
 
-Let's create a twin CLI called 'snap', the first thing is to create a sym link
-with our new tool name:
+Let's create a twin CLI called 'snap', the first thing is to create a symbolic
+link with our new tool name:
 
 ln -s ${MAIN_COMMAND} snap
 
@@ -173,8 +177,8 @@ export SNAP_CONF_DIR=/some/dir/snap/conf
 export SNAP_SUBCMD_DIR=/some/dir/snap/subcommands
 
 If you call 'snap' this time it will not show any subcommands (assuming the
-dirs are empty). You can now extend the behavior of your new tool
-by creating subcommands and configurations as you see fit.
+directories are empty). You can now extend the behavior of your new tool by
+creating subcommands and configurations as you see fit.
 
 What about extending? If you want to bring all files from ${MAIN_COMMAND} to
 your snap tool and only create new commands you can use:
@@ -183,6 +187,40 @@ ${MAIN_COMMAND} twin update
 
 This command will copy all files to your new tool and you can extend them and
 grow your own CLI.
+
+END_OF_DOC
+}
+
+function doc_handle_interface() {
+  less -R <<END_OF_DOC
+$(__less_notice)
+handle_interface \${@} - calling implementation from interface
+
+When using the 'cmdmap' feature we need to define a subcommand
+file like 'date' that will handle the call. This file does not
+have an implementation of the subcommand but just works as
+a proxy (or interface) for the real command.
+
+In 'cmdmap' we mentioned that 'to_date' is the action we
+will implement in a OS independent way. For that our
+'date' file will look like:
+
+function date_to_date() { error 'not implemented'; }
+
+handle_interface \${@}
+
+In this case we define that there's a function called 'to_date'
+we expect be overridden by a real implementation of 'to_date', to
+delegate the call we need to use the function 'handle_interface' and
+pass all arguments we received to this function.
+
+Note that the way 'handle_interface' works it will prefix any
+function call in the form of 'SUBCOMMAND_FUNCTION'. So, in the case
+of 'date' subcommand with 'to_date' function the real functions must
+be called 'date_to_date'.
+
+The reason for this convention is to avoid name clashing with other
+functions and/or commands already in your shell.
 
 END_OF_DOC
 }

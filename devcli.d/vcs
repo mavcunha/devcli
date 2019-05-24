@@ -13,7 +13,7 @@ update           Will fetch from remotes and try to merge
 EOH
 )
 
-function status() { error "not implemented"; }
-function update() { error "not implemented"; }
+function vcs_status() { error "not implemented"; }
+function vcs_update() { error "not implemented"; }
 
 handle_interface ${@}

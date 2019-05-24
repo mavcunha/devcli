@@ -18,7 +18,7 @@ function _keychain() {
   echo -n ${key%\\n}
 }
 
-function get() {
+function pass_get() {
   local key=${1}
   echo $(_keychain ${key})
 }

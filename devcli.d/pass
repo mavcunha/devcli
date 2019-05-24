@@ -8,6 +8,6 @@ get KEY          Will return the password for KEY
 EOH
 )
 
-function get() { error "not implemented"; }
+function pass_get() { error "not implemented"; }
 
 handle_interface ${@}

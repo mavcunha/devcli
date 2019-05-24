@@ -2,6 +2,6 @@
 
 # takes a UNIX timestamp and returns formatted
 # using linux date
-function to_date() {
+function date_to_date() {
   date -d "@${1}"
 }
