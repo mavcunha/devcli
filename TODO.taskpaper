@@ -1,13 +1,18 @@
-DevCLI TODOs:
+DevCLI:
 	-	continuous integration server
-		- jenkins functions
+		- status of a build
+		- log of a build
 	- version control system
-		- git log parsing
-	- build system / compilation
+		- status of multiple projects
+		- update of multiple projects
+		- easy clone/checkout of repos
+	- build systems / running tests
 		- maven functions (run tests and such)
-		- lein
 	- utilities
 		- ssh key gen and configuration
-		- repository sharing functions
+		- sharing functions (repository / other files)
+	- machine setup checks and helpers
+		- check for dependencies
+		- configuration detail check
 	- documentations
-
+		- internal structure
