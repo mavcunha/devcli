@@ -13,32 +13,47 @@ update NAME [-f]          Will copy all files in:
 create NAME DIR           This will create a twin (a copy of this tool)
                           which you can extend and change it.
 
+status NAME               Check how files compare between this tool
+                          and NAME tool.
+
 EOH
 )
 
+function _check_env() {
+    local name="${1}"
+    # these variable will be global to this script
+    local -g CNF_DIR="${name^^}_CONF_DIR"
+    local -g SUB_DIR="${name^^}_SUBCMD_DIR"
+
+    if [[ ! -d ${!CNF_DIR} || ! -d ${!SUB_DIR} ]]; then
+      error "Env variables ${SUB_DIR} and ${CNF_DIR} must be defined.\n"
+    fi
+}
+
 case ${1} in
+  status)
+    twin_name="${2?'missing twin command NAME'}"
+    _check_env "${twin_name}"
+
+  ;;
+
   update)
     twin_name="${2?'missing twin command NAME'}"
+    _check_env "${twin_name}"
 
     in_cyan "Updating twin '${twin_name}' command files. \
       Use '-f' after NAME to force overwrite of files.\n"
 
-    # dry run unless -f is given
+    # do not force overwrite files by default
     [[ ${3:-""} == "-f" ]] && cp_flags="-Rv" || cp_flags="-nRv"
 
-    twin_cnf_dir="${twin_name^^}_CONF_DIR"
-    twin_sub_dir="${twin_name^^}_SUBCMD_DIR"
+    in_cyan "Copying files into twin configuration directory\n"
+    cp ${cp_flags} "${CONFIGURATION_DIR}/" "${!CNF_DIR}/"
 
-    if [[ ! -d ${!twin_cnf_dir} || ! -d ${!twin_sub_dir} ]]; then
-      error "Env variables ${twin_sub_dir} and ${twin_cnf_dir} must be defined.\n"
-    fi
-
-    in_cyan "Copying files into twin configuration directory\n\n"
-    cp ${cp_flags} "${CONFIGURATION_DIR}/" "${!twin_cnf_dir}/"
-
-    in_cyan "\nCopying files into twin subcommands directory\n\n"
-    cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!twin_sub_dir}/"
+    in_cyan "\nCopying files into twin subcommands directory\n"
+    cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!SUB_DIR}/"
   ;;
+
   create)
     twin_name="${2?'missing twin command NAME parameter'}"
     twin_name="${twin_name,,}" # make it lowercase
