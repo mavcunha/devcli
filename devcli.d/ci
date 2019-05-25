@@ -1,5 +1,5 @@
 # vim: ft=sh
-SUBCOMMAND_DESC="Subcommand description"
+SUBCOMMAND_DESC="Shortcuts to handle CI server"
 SUBCOMMAND_HELP=$(cat <<EOH
 
 status [NAME]                    Should list the current status for pipelines
