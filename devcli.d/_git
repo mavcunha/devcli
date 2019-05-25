@@ -7,9 +7,9 @@
 # repositories in batch.
 
 function vcs_status() {
-  ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -abl
+  ${SUBCOMMANDS_DIR}/tools/sweepwip -d ${PROJECTS_DIR} -abl
 }
 
 function vcs_update() {
-  ${SUBCOMMANDS_DIR}/__sweepwip_bin -d ${PROJECTS_DIR} -ku
+  ${SUBCOMMANDS_DIR}/tools/sweepwip -d ${PROJECTS_DIR} -ku
 }
