@@ -1,0 +1,105 @@
+# vim: ft=sh
+SUBCOMMAND_DESC="Set of high level checks"
+SUBCOMMAND_HELP=$(cat <<EOH
+
+all               Run all checks
+
+list              List current checks
+
+CHECK             Call only CHECK, use list to
+                  see all available checks
+
+EOH
+)
+
+function check_syntax() {
+  in_cyan "Syntax check:"
+
+  local failures=()
+  while read file; do
+    log "checking file syntax for ${file}"
+    if bash -n ${file} &> /dev/null; then
+      in_cyan '.'
+    else
+      failures+=(${file}); in_red 'f'
+    fi
+  done <<< $(find -E ${SUBCOMMANDS_DIR} -type f -regex '.*/[^[:blank:]]+$')
+
+  if [[ "${#failures[@]}" -gt 0 ]]; then
+    in_yellow "\nFailures:\n"
+    printf '%s\n' "${failures[@]}"
+  else
+    green_box "PASS"
+  fi
+}
+
+function check_no_subcommands() {
+  in_cyan "Initial help message:"
+  ${MAIN_COMMAND} | grep -qE 'Subcommands available.*:$' \
+    && green_box "PASS" || red_box "FAIL"
+}
+
+function check_debug_op() {
+  in_cyan "Check --debug flag works:"
+  ${MAIN_COMMAND} --debug 2>&1 | grep -qE '^[[:cntrl:]]+.*debug: ' \
+    && green_box 'PASS' || red_box 'FAIL'
+
+  in_cyan "Check ${MAIN_COMMAND^^}_DEBUG=true environment var:"
+  (export "${MAIN_COMMAND^^}_DEBUG=true";
+    ${MAIN_COMMAND} 2>&1 | grep -qE '^[[:cntrl:]]+.*debug: ') \
+    && green_box 'PASS' || red_box 'FAIL'
+}
+
+function check_cmd_not_found() {
+  in_cyan "Command not found should echo command: "
+  ${MAIN_COMMAND} command_not_found 2>&1 | grep -qE "^[[:cntrl:]]+.*'command_not_found' not found" \
+    && green_box 'PASS' || red_box 'FAIL'
+
+  in_cyan "After not found should bring up usage: "
+  ${MAIN_COMMAND} command_not_found 2>&1 | grep -qE "usage: ${MAIN_COMMAND}" \
+    && green_box 'PASS' || red_box 'FAIL'
+}
+
+function check_subcmd_docs() {
+  in_cyan "Subcommands define documentation: "
+
+  local failures=()
+  while read file; do
+    grep -qE '^SUBCOMMAND_DESC=' ${file} && \
+    grep -qE '^SUBCOMMAND_HELP=' ${file}
+
+    if [[ "$?" -eq 0 ]]; then
+      in_cyan '.'
+    else
+      in_red 'f'
+      failures+=(${file})
+    fi
+  done <<< $(find -E ${SUBCOMMANDS_DIR} -type f -not -regex '.*/_[^[:blank:]]+$')
+
+  if [[ "${#failures[@]}" -gt 0 ]]; then
+    red_box 'FAIL'
+    in_yellow "\nFailures:\n"
+    printf '%s\n' "${failures[@]}"
+  else
+    green_box "PASS"
+  fi
+}
+
+function list_all_checks() {
+  echo $(typeset -F | grep 'declare -f check_' | cut -d' ' -f3)
+}
+
+case ${1} in
+  all)
+    for check in $(list_all_checks); do
+      ${check};
+    done
+  ;;
+  list)
+    printf '%s\n' $(list_all_checks)
+  ;;
+  *)
+    ${1}
+  ;;
+esac
+
