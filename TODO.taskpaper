@@ -1,9 +1,9 @@
 DevCLI:
 	-	continuous integration server
-		- status of a build
+		- status of a build @done
 		- log of a build
 	- version control system
-		- status of multiple projects
+		- status of multiple projects @done(2019-05-23)
 		- update of multiple projects
 		- easy clone/checkout of repos
 	- build systems / running tests
@@ -16,3 +16,6 @@ DevCLI:
 		- configuration detail check
 	- documentations
 		- internal structure
+
+Technical:
+	- create a NAME_DEVCLI_DIR variable and work with conventions for conf and subcommands.

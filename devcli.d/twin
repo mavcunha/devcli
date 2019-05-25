@@ -46,15 +46,15 @@ function _print_diff_result() {
 function _check_diff_in_dir() {
   local source_dir="${1}"
   local target_dir="${2}"
-  echo ${source_dir}
-  local partial_source_dir=${source_dir%${target_dir}/}
-  local partial_target_dir=${target_dir%${source_dir}/}
+
+  local base_source_dir=$(basename ${source_dir})
+  local base_target_dir=$(basename ${target_dir})
 
   while read line; do
     f=${line#${source_dir}/}
     diff --brief ${source_dir}/${f} ${target_dir}/${f} &> /dev/null \
-      && _print_diff_result "${partial_source_dir}/${f} ${partial_target_dir}/${f}" "$(green_box 'SAME' )"  \
-      || _print_diff_result "${f}" "$(yellow_box 'DIFF' )"
+      && _print_diff_result "${f}" "$(green_box 'SAME' )"  \
+      || _print_diff_result "${f}" "$(red_box 'DIFF' )"
 
   done <<< $(find ${source_dir} -type f)
 }
@@ -62,8 +62,15 @@ function _check_diff_in_dir() {
 case ${1} in
   diff)
     twin_name="${2?'missing twin command NAME'}"
+    file_name="${3?'missing which file to diff'}"
     _check_env "${twin_name}"
-
+    if [[ -f ${SUBCOMMANDS_DIR}/${file_name} ]]; then
+      diff ${SUBCOMMANDS_DIR}/${3} ${SUB_DIR}/${file_name}
+    elif [[ -f ${CONFIGURATION_DIR}/${file_name} ]]; then
+      diff ${CONFIGURATION_DIR}/${file_name} ${SUB_DIR}/${file_name}
+    else
+      error "${file_name} not found in ${SUBCOMMANDS_DIR} or ${CONFIGURATION_DIR}"
+    fi
   ;;
   status)
     twin_name="${2?'missing twin command NAME'}"
@@ -86,10 +93,10 @@ case ${1} in
     [[ ${3:-""} == "-f" ]] && cp_flags="-Rv" || cp_flags="-nRv"
 
     in_cyan "Copying files into twin configuration directory\n"
-    cp ${cp_flags} "${CONFIGURATION_DIR}/" "${!CNF_DIR}/"
+    cp ${cp_flags} "${CONFIGURATION_DIR}/" "${CNF_DIR}/"
 
     in_cyan "\nCopying files into twin subcommands directory\n"
-    cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${!SUB_DIR}/"
+    cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${SUB_DIR}/"
   ;;
   create)
     twin_name="${2?'missing twin command NAME parameter'}"
