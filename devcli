@@ -53,8 +53,9 @@ function dyn_value() {
   # dyn_value SUFFIX DEFAULT - returns env variable value MAIN_COMMAND + _SUFFIX or DEFAULT
   local suffix="${1}"
   local default="${2}"
-  v=$(eval "echo -n \${${MAIN_COMMAND^^}_${suffix}}")
-  [[ -n ${v} ]] && echo ${v} || echo ${default}
+  local varname="${MAIN_COMMAND^^}_${suffix}"
+  log "${varname}='${!varname}' || '${default}'"
+  echo ${!varname-${default}}
 }
 
 # log functions should be defined as soon as possible
@@ -71,18 +72,33 @@ function log() {
   fi
 }
 
-# Variables that can be overriden by the environment:
-# CONFIGURATION_DIR points to where "load_conf" will look
-# SUBCOMMANDS_DIR is the main dir where commands are load from
-# DEBUG is turn on or off debug messages.
-declare -r CONFIGURATION_DIR=$(dyn_value "CONF_DIR" "${ROOT_DIR}/conf")
-declare -r SUBCOMMANDS_DIR=$(dyn_value "SUBCMD_DIR" "${ROOT_DIR}/${MAIN_COMMAND}.d")
-log "CONFIGURATION_DIR=${CONFIGURATION_DIR}"
-log "SUBCOMMANDS_DIR=${SUBCOMMANDS_DIR}"
-
 # flag for debug messages, it can be defined using
 # and environment variable or using the --debug flag
 DEBUG=$(dyn_value "DEBUG" "")
+
+# Variables that can be overridden by the environment:
+# TOOL_WORKING_DIR is a shortcut for tool/conf and tool/tool.d
+# CONFIGURATION_DIR points to where "load_conf" will look
+# SUBCOMMANDS_DIR is the main dir where commands are load from
+# Using TOOL_WORKING_DIR where TOOL is the name of the tool
+# is preferred
+function handle_environment() {
+  local command="${1}"
+  log "handling environment variables for ${command}"
+
+  local workdir="${command^^}_WORKING_DIR"
+  log "${workdir}=${!workdir}"
+
+  local tool_root_dir=${!workdir-${ROOT_DIR}}
+
+  declare -gr CONFIGURATION_DIR=$(dyn_value "CONF_DIR" "${tool_root_dir}/conf")
+  declare -gr SUBCOMMANDS_DIR=$(dyn_value "SUBCMD_DIR" "${tool_root_dir}/${command}.d")
+
+  log "CONFIGURATION_DIR=${CONFIGURATION_DIR}"
+  log "SUBCOMMANDS_DIR=${SUBCOMMANDS_DIR}"
+}
+handle_environment "${MAIN_COMMAND}"
+
 
 function use() {
   # use LIB - loads library LIB in the current context

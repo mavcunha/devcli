@@ -2,7 +2,10 @@
 SUBCOMMAND_DESC="Utility for maintain copies of '${MAIN_COMMAND}'"
 SUBCOMMAND_HELP=$(cat <<EOH
 
-update NAME [-f]          Will copy all files in:
+Note: NAME is optional as long is definedin in 'twin/config',
+if not defined there it will be required.
+
+update [-f] [NAME]        Will copy all files in:
                           ${SUBCOMMANDS_DIR}
                           and
                           ${CONFIGURATION_DIR}
@@ -10,28 +13,47 @@ update NAME [-f]          Will copy all files in:
                           tool defined by NAME. Unless '-f' is given
                           this command won't overwrite any files.
 
-create NAME DIR           This will create a twin (a copy of this tool)
+create DIR [NAME]         This will create a twin (a copy of this tool)
                           which you can extend and change it.
 
-status NAME               Check how files compare between this tool
+status [NAME]             Check how files compare between this tool
                           and NAME tool.
+
+diff FILE [NAME]          Run vimdiff on FILE for this tool and NAME.
+
+copy FILE [NAME]          Copy a single FILE copy from this tool to
+                          NAME.
 
 EOH
 )
 
+load_conf "config"
+
 function _check_env() {
     local name="${1}"
-    # these variable will be global to this script
+
+    local w_dir="${name^^}_WORKING_DIR"
     local c_dir="${name^^}_CONF_DIR"
     local s_dir="${name^^}_SUBCMD_DIR"
 
-    if [[ ! -d ${!c_dir} || ! -d ${!s_dir} ]]; then
+    # override if specific dir was given
+    log "check if ${c_dir} and/or ${s_dir} are defined"
+    [[ -d "${c_dir}" ]] && local -g CNF_DIR="${!c_dir}"
+    [[ -d "${s_dir}" ]] && local -g SUB_DIR="${!s_dir}"
+
+    # use working dir for any non defined directory
+    log "fallback to ${w_dir} if needed"
+    if [[ -d "${!w_dir}" ]]; then
+      log "${w_dir}=${!w_dir} defined"
+      [[ -z ${CNF_DIR} ]] && local -g CNF_DIR="${!w_dir}/conf"
+      [[ -z ${SUB_DIR} ]] && local -g SUB_DIR="${!w_dir}/${name,,}.d"
+    fi
+
+    # fail if could not figure out working directories
+    if [[ ! -d ${CNF_DIR} || ! -d ${SUB_DIR} ]]; then
       error "Env variables ${s_dir} and ${c_dir} must be defined.\n"
     fi
 
-    log "Exporting CNF_DIR and SUB_DIR variables."
-    local -g CNF_DIR="${!c_dir}"
-    local -g SUB_DIR="${!s_dir}"
 }
 
 function _print_diff_result() {
@@ -60,20 +82,41 @@ function _check_diff_in_dir() {
 }
 
 case ${1} in
+  copy)
+    file_name="${2?'missing which FILE to copy'}"
+    twin_name="${3-${config['name']}}"
+    [[ -n ${twin_name} ]] || error "NAME not found in twin/conf or given as argument"
+
+    log "check env for ${twin_name}"
+    _check_env "${twin_name}"
+
+    if [[ -f ${SUBCOMMANDS_DIR}/${file_name} ]]; then
+      log "file ${file_name} exists in ${SUBCOMMANDS_DIR}"
+      cp -fv ${SUBCOMMANDS_DIR}/${file_name} ${SUB_DIR}/${file_name}
+    elif [[ -f ${CONFIGURATION_DIR}/${file_name} ]]; then
+      log "file ${file_name} exists in ${CONFIGURATION_DIR}"
+      cp -fv ${CONFIGURATION_DIR}/${file_name} ${CNF_DIR}/${file_name}
+    else
+      error "${file_name} not found in ${SUBCOMMANDS_DIR} or ${CONFIGURATION_DIR}"
+    fi
+  ;;
   diff)
-    twin_name="${2?'missing twin command NAME'}"
-    file_name="${3?'missing which file to diff'}"
+    file_name="${2?'missing which file to diff'}"
+    twin_name="${3-${config['name']}}"
+    [[ -n ${twin_name} ]] || error "NAME not found in twin/conf or given as argument"
+
     _check_env "${twin_name}"
     if [[ -f ${SUBCOMMANDS_DIR}/${file_name} ]]; then
-      diff ${SUBCOMMANDS_DIR}/${3} ${SUB_DIR}/${file_name}
+      vimdiff ${SUBCOMMANDS_DIR}/${file_name} ${SUB_DIR}/${file_name}
     elif [[ -f ${CONFIGURATION_DIR}/${file_name} ]]; then
-      diff ${CONFIGURATION_DIR}/${file_name} ${SUB_DIR}/${file_name}
+      vimdiff ${CONFIGURATION_DIR}/${file_name} ${CND_DIR}/${file_name}
     else
       error "${file_name} not found in ${SUBCOMMANDS_DIR} or ${CONFIGURATION_DIR}"
     fi
   ;;
   status)
-    twin_name="${2?'missing twin command NAME'}"
+    twin_name="${2-${config['name']}}"
+    [[ -n ${twin_name} ]] || error "NAME not found in twin/conf or given as argument"
     _check_env "${twin_name}"
 
     in_cyan "Checking configurations:\n"
@@ -83,7 +126,8 @@ case ${1} in
     _check_diff_in_dir "${SUBCOMMANDS_DIR}"   "${SUB_DIR}"
   ;;
   update)
-    twin_name="${2?'missing twin command NAME'}"
+    twin_name="${2-${config['name']}}"
+    [[ -n ${twin_name} ]] || error "NAME not found in twin/conf or given as argument"
     _check_env "${twin_name}"
 
     in_cyan "Updating twin '${twin_name}' command files. \
@@ -99,13 +143,15 @@ case ${1} in
     cp ${cp_flags} "${SUBCOMMANDS_DIR}/"   "${SUB_DIR}/"
   ;;
   create)
-    twin_name="${2?'missing twin command NAME parameter'}"
-    twin_name="${twin_name,,}" # make it lowercase
-    in_cyan "Creating '${twin_name}' as twin copy of this tool\n"
-
-    twin_dir="${3?'missing twin command DIR parameter'}"
+    twin_dir="${2?'missing twin command DIR parameter'}"
     [[ ! -d "${twin_dir}" ]] \
       && error "'${twin_dir}' must be a directory.\n"
+
+    twin_name="${3-${config['name']}}"
+    [[ -n ${twin_name} ]] || error "NAME not found in twin/conf or given as argument"
+
+    twin_name="${twin_name,,}" # make it lowercase
+    in_cyan "Creating '${twin_name}' as twin copy of this tool\n"
 
     twin_project_dir="${twin_dir%/}/${twin_name}"
     log "project dir set as: ${twin_project_dir}"

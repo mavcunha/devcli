@@ -1,0 +1,8 @@
+# vim: ft=sh
+
+# a default name for a twin CLI tool
+# this will be used if NAME parameter
+# is missing during twin subcommand
+# 'snap' is just in homage of an old
+# version of 'devcli'
+config['name']='snap'
