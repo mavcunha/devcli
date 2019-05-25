@@ -141,6 +141,7 @@ function handle_interface() {
 log "check if ${MAIN_COMMAND} is on PATH"
 type -a ${MAIN_COMMAND} &> /dev/null
 if [[ $? -ne 0 ]]; then
+  log "exporting ${MAIN_COMMAND} to PATH"
   export PATH=${PATH}:${ROOT_DIR}
 fi
 
@@ -278,7 +279,7 @@ case ${_arg_subcmd} in
   *)
     log "arguments '${*}'"
     log "checking if '${SUBCOMMANDS_DIR}/${_arg_subcmd}' exists"
-    [[ ! -f "${SUBCOMMANDS_DIR}/${_arg_subcmd}" ]] && in_red "'${_arg_subcmd}' not found\n" && _list_commands
+    [[ ! -f "${SUBCOMMANDS_DIR}/${_arg_subcmd}" ]] && in_red "'${_arg_subcmd}' not found\n\n" && _list_commands
     shift 1
     _handle_subcommand ${_arg_subcmd} "${@}"
     ;;
