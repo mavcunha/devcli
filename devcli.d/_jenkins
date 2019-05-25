@@ -1,10 +1,8 @@
 # vim: ft=sh
 
-# Jenkins functions
+# Jenkins configurations
 load_conf jenkins_conf
 load_conf jenkins_jobs
-
-#  /lastBuild/api/json?tree=result | jq -r .result
 
 function __status_color() {
   case ${1} in
@@ -19,10 +17,11 @@ function __formatted_status() {
   local job_alias="${1}"
   local job_status="${2}"
 
-  j="${job_alias}|${jenkins_jobs[${job_alias}]}" # compose job name
+  job="${job_alias}|${jenkins_jobs[${job_alias}]}" # compose job name
 
   line=$(printf ".%.0s" {1..60}) # large sequence of '.' for formatting
-  printf "%s%s%s\n" "$(in_yellow ${j})"  "${line:${#j}}" "$(__status_color ${job_status})"
+  # this printf uses the line above to create 'job.....[STATUS]' display
+  printf "%s%s%s\n" "$(in_yellow ${job})"  "${line:${#job}}" "$(__status_color ${job_status})"
 }
 
 function ci_status() {
@@ -31,12 +30,13 @@ function ci_status() {
   for k in "${!jenkins_jobs[@]}"; do
     if [[ ${k} =~ ${filter_by} ]]; then
       log "matched job: ${k}, fetching lastBuild result"
+
       api_call="${jenkins_conf["url"]}/job/${jenkins_jobs[${k}]}/lastBuild/api/json?tree=result"
+
       log "calling: ${api_call}"
       curr_status=$(http --body ${api_call} | jq -r .result)
+
       __formatted_status "${k}" "${curr_status}"
       fi
   done
 }
-
-
