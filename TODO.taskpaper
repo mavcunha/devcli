@@ -18,3 +18,6 @@ DevCLI:
 		- internal structure @done
 	- inner workings
 		- one ENV variable for sub and conf @done
+	- security
+		- pass functionality @done
+		- internal use of pass functionality
