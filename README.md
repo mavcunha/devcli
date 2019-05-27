@@ -6,15 +6,14 @@
 
 The first thing you need is to download devcli by cloning this repo and `cd` into it.
 
-Start by calling `devcli create -n TOOL_NAME -d DIR_TO_CREATE`, where
-**TOOL_NAME** is how you want to call your new CLI tool. **DIR_TO_CREATE** is
+Start by calling `devcli twin create DIR_TO_CREATE`, where **DIR_TO_CREATE** is
 where you want it be be created. Example:
 
 ```
-./devcli create -n mytool -d ~/Projects/myproject
+./devcli twin create ~/Projects/myproject/mytool
 ```
 
-Now, if you go to `~/Projects/myproject` you should see the initial structure for
+Now, if you go to `~/Projects/myproject/mytool` you should see the initial structure for
 your CLI. Take a look at the scripts to see examples of what you can do!
 
 # Extending your new tool
