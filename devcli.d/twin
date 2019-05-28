@@ -5,7 +5,7 @@ SUBCOMMAND_HELP=$(cat <<EOH
 Note: NAME is optional as long is definedin in 'twin/config',
 if not defined there it will be required.
 
-update [-f] [NAME]        Will copy all files in:
+update [NAME] [-f]        Will copy all files in:
                           ${SUBCOMMANDS_DIR}
                           and
                           ${CONFIGURATION_DIR}
