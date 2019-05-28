@@ -1,5 +1,7 @@
 # vim: ft=sh
 
+use "secrets"
+
 # Jenkins configurations
 load_conf jenkins_conf
 load_conf jenkins_jobs
@@ -24,19 +26,31 @@ function __formatted_status() {
   printf "%s%s%s\n" "$(in_yellow ${job})"  "${line:${#job}}" "$(__status_color ${job_status})"
 }
 
+function __jenkins_result_url() {
+  local job="${1?'missing job name'}"
+  result_api_url="${jenkins_conf['url']}/${job}/lastBuild/api/json?tree=result"
+  log "jenkins api call: ${result_api_url}"
+  echo "${result_api_url}"
+}
+
+function __jenkins_creds() {
+  if [[ -n ${jenkins_conf['user']} || -n ${jenkins_conf['pass']} ]]; then
+    user="$(get_secret ${jenkins_conf['user']})"
+    pass="$(get_secret ${jenkins_conf['pass']})"
+    log " creds: --auth '${user}:${pass}' "
+    echo " --auth ${user}:${pass} "
+  fi
+}
+
 function ci_status() {
   local filter_by="${1-.*}"
   log "filtering by: ${filter_by}"
   for k in "${!jenkins_jobs[@]}"; do
     if [[ ${k} =~ ${filter_by} ]]; then
       log "matched job: ${k}, fetching lastBuild result"
-
-      api_call="${jenkins_conf["url"]}/job/${jenkins_jobs[${k}]}/lastBuild/api/json?tree=result"
-
-      log "calling: ${api_call}"
-      curr_status=$(http --body ${api_call} | jq -r .result)
-
-      __formatted_status "${k}" "${curr_status}"
-      fi
+      full_request="http $(__jenkins_creds) --body $(__jenkins_result_url ${jenkins_jobs[${k}]})"
+      log "calling: ${full_request}"
+      __formatted_status "${k}" "$(${full_request} | jq -r .result )"
+    fi
   done
 }
