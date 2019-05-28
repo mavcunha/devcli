@@ -1,5 +1,4 @@
 # vim: ft=sh
-
 use "secrets"
 
 # Jenkins configurations
@@ -37,9 +36,10 @@ function __jenkins_creds() {
   if [[ -n ${jenkins_conf['user']} || -n ${jenkins_conf['pass']} ]]; then
     user="$(get_secret ${jenkins_conf['user']})"
     pass="$(get_secret ${jenkins_conf['pass']})"
-    log " creds: --auth '${user}:${pass}' "
-    echo " --auth ${user}:${pass} "
+    [[ -z "${user}" || -z "${pass}" ]] && auth="" || auth=" --auth ${user}:${pass} "
+    log "user=${user} pass=${pass}"
   fi
+  echo "${auth}"
 }
 
 function ci_status() {
