@@ -5,4 +5,4 @@
 # is missing during twin subcommand
 # 'snap' is just in homage of an old
 # version of 'devcli'
-config['name']="${DEVCLI_TWIN_TOOL_NAME-'snap'}"
+config['name']="${DEVCLI_TWIN_TOOL_NAME-snap}"
