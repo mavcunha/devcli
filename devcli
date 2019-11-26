@@ -21,6 +21,20 @@ function green_box()   { __box "$(in_green "${1}")";   }
 function yellow_box()  { __box "$(in_yellow "${1}")";  }
 function magenta_box() { __box "$(in_magenta "${1}")"; }
 
+# This is a simple formatting function which helps
+# to create listing outputs such as:
+# ENTRY....................RESULT
+# ENTRY2...................RESULT2
+#
+function with_dots_between() {
+  local entry="${1}"
+  local result="${2}"
+
+  sep=$(printf ".%.0s" {1..25}) # large sequence of '.' for formatting
+
+  printf "%s%s%s\n" "${entry}" "${sep:${#entry}}" "${result}"
+}
+
 # This is a shortcut for exiting with error
 # calling error will stop the script
 function error() {
