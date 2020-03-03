@@ -29,6 +29,8 @@ function magenta_box() { __box "$(in_magenta "${1}")"; }
 function with_dots_between() {
   local entry="${1}"
   local result="${2}"
+  local ndots="${3:-25}"
+  log "with_dots_between: ndots=${ndots}"
 
   sep=$(printf ".%.0s" {1..25}) # large sequence of '.' for formatting
 

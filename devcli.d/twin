@@ -56,15 +56,6 @@ function _check_env() {
 
 }
 
-function _print_diff_result() {
-  local file="${1}"
-  local result="${2}"
-
-  sep=$(printf ".%.0s" {1..25}) # large sequence of '.' for formatting
-
-  printf "%s%s%s\n" "${file}" "${sep:${#f}}" "${result}"
-}
-
 function _check_diff_in_dir() {
   local source_dir="${1}"
   local target_dir="${2}"
@@ -75,8 +66,8 @@ function _check_diff_in_dir() {
   while read line; do
     f=${line#${source_dir}/}
     diff --brief ${source_dir}/${f} ${target_dir}/${f} &> /dev/null \
-      && _print_diff_result "${f}" "$(green_box 'SAME' )"  \
-      || _print_diff_result "${f}" "$(red_box 'DIFF' )"
+      && with_dots_between "${f}" "$(green_box 'SAME' )"  \
+      || with_dots_between "${f}" "$(red_box 'DIFF' )"
 
   done <<< $(find ${source_dir} -type f)
 }
