@@ -18,3 +18,20 @@ $(cat <<-EOM
 EOM
 )
 }
+
+function new_cli_files() {
+echo \
+$(cat <<-EOM
+  date
+  docs
+  template
+  tools
+  vcs
+  url
+  _environment
+  _linux_date
+  _git
+  _macos_date
+EOM
+)
+}

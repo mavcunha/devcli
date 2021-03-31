@@ -1,0 +1,65 @@
+# vim: ft=sh sw=2 ts=2 expandtab
+use "file_manifest"
+
+SUBCOMMAND_DESC="Utility to create new copies of'${MAIN_COMMAND}'"
+SUBCOMMAND_HELP=$(cat <<EOH
+
+new_cli DIR [NAME]         This will create a new CLI
+
+EOH
+)
+
+case ${1} in
+  test)
+    new_cli_files
+  ;;
+  new_cli)
+    new_dir="${2?'missing new command DIR parameter'}"
+    [[ ! -d "${new_dir}" ]] \
+      && error "'${new_dir}' must be a directory.\n"
+
+    new_cli_name="${3-${config['name']}}"
+    [[ -n ${new_cli_name} ]] || error "NAME not found in twin/conf or given as argument"
+
+    new_cli_name="${new_cli_name,,}" # make it lowercase
+    in_cyan "Creating '${new_cli_name}' as a new copy of this tool\n"
+
+    new_project_dir="${new_dir%/}/${new_cli_name}"
+    log "project dir set as: ${new_project_dir}"
+    [[ -d "${new_project_dir}" ]] \
+      && error "${new_project_dir} already exists, choose another name\n"
+
+    new_subcmd_dir="${new_project_dir}/${new_cli_name}.d"
+    new_config_dir="${new_project_dir}/conf"
+    log "subcmd dir set as: ${new_subcmd_dir}"
+    log "config dir set as: ${new_config_dir}"
+
+    in_cyan "Creating directory: ${new_project_dir}\n"
+    mkdir "${new_project_dir}"
+    in_cyan "Creating subcmd directory: ${new_subcmd_dir}\n"
+    mkdir "${new_subcmd_dir}"
+
+    in_cyan "Copying the conf folder\n"
+    cp -r "${CONFIGURATION_DIR}" "${new_config_dir}"
+    rm -rf "${new_config_dir}/twin"
+
+    new_files_to_copy=$(new_cli_files)
+    log "functionalities to copy: ${new_files_to_copy}"
+    
+    in_cyan "Copying the default functionalities \n"
+    cd "${SUBCOMMANDS_DIR}"
+    cp -r ${new_files_to_copy} "${ROOT_DIR}/${new_subcmd_dir}"
+    cd "${ROOT_DIR}"
+
+    in_cyan "Copying the devcli executable\n"
+    cp "${ROOT_DIR}/${MAIN_COMMAND}" "${new_project_dir}"
+    mv "${new_project_dir}/${MAIN_COMMAND}" "${new_project_dir}/${new_cli_name}"
+
+
+    in_cyan "Exporting configuration environment variables for '${new_cli_name}'\n"
+    export "${new_cli_name^^}_CONF_DIR=${new_config_dir}"
+    export "${new_cli_name^^}_SUBCMD_DIR=${new_subcmd_dir}"
+
+    in_green "${new_cli_name} setup finished.\n"
+  ;;
+esac
