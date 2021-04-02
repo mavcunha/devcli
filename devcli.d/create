@@ -39,6 +39,7 @@ case ${1} in
     in_cyan "Copying the conf folder\n"
     cp -r "${CONFIGURATION_DIR}" "${new_config_dir}"
     rm -rf "${new_config_dir}/twin"
+    rm -rf "${new_config_dir}/ci"
 
     new_files_to_copy=$(new_cli_files)
     log "functionalities to copy: ${new_files_to_copy}"
