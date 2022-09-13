@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+#
+
+case ${1} in
+  noop) ;;
+  -h|--help) help;;
+  *)
+    whence -p curl &> /dev/null || error "Missing curl software, please install it.\n"
+    echo "$(curl --silent https://mit-license.org/license.txt)"
+  ;;
+esac
