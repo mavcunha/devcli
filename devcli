@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-readonly MAIN_COMMAND_VERSION="2.0-beta"
+readonly MAIN_COMMAND_VERSION="1.0"
 
 readonly MAIN_COMMAND=${0:t}
 readonly ROOT_DIR=${0:a:h}
@@ -31,7 +31,7 @@ function warn() {
 }
 
 # accept '-d' as a debug flag
-zparseopts -D -E - d=DEBUG -debug=DEBUG q=GRIND_QUIET -quiet=GRIN_QUIET
+zparseopts -D -E - d=DEBUG -debug=DEBUG q=QUIET_MODE -quiet=QUIET_MODE
 
 # also accept GRIND_DEBUG=true as debug
 _DEBUG_ENV="${(U)MAIN_COMMAND}_DEBUG"
@@ -59,8 +59,8 @@ function _list_commands() {
 
   -h|--help                Show this help message
   -l|--list                List available libraries
-  -q|--quiet               Quiet mode, only applies to 'update run'
-  -d|--debug               Enable debug mode, same as setting GRIND_DEBUG
+  -q|--quiet               Quiet mode, suppress extra information
+  -d|--debug               Enable debug mode, same as ${(U)MAIN_COMMAND}_DEBUG env
   -V|--version             Display current version
 
   Subcommands available ('${MAIN_COMMAND} SUBCOMMAND' for usage):
@@ -109,6 +109,7 @@ EOU
 }
 
 function help() {
+  log "showing subcommand:${SUBCOMMAND} help (lenght):${#SUBCOMMAND_HELP}"
   _subcommand_help ${SUBCOMMAND} "${SUBCOMMAND_HELP}"
 }
 

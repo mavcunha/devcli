@@ -26,6 +26,8 @@ EOH
 )
 
 case ${1} in
+  noop) ;;
+  -h|--help) help ;;
   show)
     _show_all
   ;;
