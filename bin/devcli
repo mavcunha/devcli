@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+import os
+import sys
+
+# get this file parent directory and add to path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
+if __name__ == "__main__":
+    from devcli.cli import cli
+
+    sys.exit(cli())

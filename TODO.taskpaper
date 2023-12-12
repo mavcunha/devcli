@@ -1,23 +1,7 @@
 DevCLI:
-	-	continuous integration server
-		- status of a build @done
-		- log of a build
-	- version control system
-		- status of multiple projects @done
-		- update of multiple projects @done
-		- easy clone/checkout of repos
-	- build systems / running tests
-		- maven functions (run tests and such)
-	- utilities
-		- ssh key gen and configuration
-		- sharing functions (repository / other files)
-	- machine setup checks and helpers
-		- check for dependencies
-		- configuration detail check
-	- documentation
-		- internal structure @done
-	- inner workings
-		- one ENV variable for sub and conf @done
-	- security
-		- pass functionality @done
-		- internal use of pass functionality
+  - Python implementation
+  - installation capability
+    - single package install
+    - homewbrew install
+  - plugin capability
+  - project specific overrides
