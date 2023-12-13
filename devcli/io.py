@@ -1,13 +1,12 @@
 import click
 import toml
 
-import devcli.cli
 from devcli import config_path
 
 CONFIG = None
 
 
-def print_message(m: str) -> None:
+def msg(m: str) -> None:
     click.echo(m)
 
 
@@ -22,9 +21,5 @@ def error(m: str) -> None:
 def config():
     global CONFIG
     if CONFIG is None:
-        CONFIG = parse_config(config_path("devcli.toml"))
+        CONFIG = toml.load(config_path("devcli.toml"))
     return CONFIG
-
-
-def parse_config(config_file):
-    return toml.load(config_file)

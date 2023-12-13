@@ -35,18 +35,23 @@ class MyCLI(click.Group):
 
 
 @click.group(cls=MyCLI)
-def cli():
+@click.option('--version', is_flag=True, help="Show version information")
+@click.pass_context
+def cli(ctx, version: bool):
+    if version:
+        version_info()
+
     devcli.io.CONFIG = io.config()
     pass
 
 
 @cli.command(help="Show version information")
-def version():
+def version_info():
     # set version as pyproject.toml is defined
     with open(project_root("pyproject.toml")) as file:
         project_info = toml.load(file)
         version_number = project_info.get("tool", {}).get("poetry", {}).get("version", "")
-    return io.print_message(f"devcli: v{version_number}")
+    return io.msg(f"devcli: v{version_number}")
 
 
 @cli.command(help="Call fallback command", context_settings=dict(ignore_unknown_options=True))

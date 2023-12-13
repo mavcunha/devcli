@@ -1,11 +1,11 @@
 from unittest import mock
 
-from devcli.io import print_message, warn, error
+from devcli.io import msg, warn, error
 
 
 def test_simple_output():
     with mock.patch("click.echo") as echo:
-        print_message("Hello World!")
+        msg("Hello World!")
         echo.assert_called_with("Hello World!")
 
 
