@@ -1,7 +1,7 @@
-DevCLI:
-  - Python implementation
-  - installation capability
-    - single package install
-    - homewbrew install
+devcli:
+  - Python initial version @done
+  - installation capability @done
+  - project specific overrides of configuration @done
+  - project specific commands @done
   - plugin capability
-  - project specific overrides
+  - helper for shell execution

@@ -1,63 +1,34 @@
-import shlex
-import subprocess
-import typing as t
+import logging
+import pathlib
 
-import click
-import toml
-from click import Context, Command
+import typer
+from typer import Context
+from rich import print
 
-import devcli.io
-from devcli import project_root
-import devcli.io as io
+from devcli import project_root, load_dynamic_commands, load_default_commands
+from devcli.config import Config
 
+cli = typer.Typer()
 
-def execute_fallback(cmd_name, args):
-    args = ' '.join(shlex.quote(str(arg)) for arg in args)
-    full_command = f"{io.config()['devcli']['fallback_command']} {cmd_name} {args}"
-    io.warn(f"Executing fallback command: {full_command}")
-    return subprocess.run(full_command, shell=True).returncode
+load_default_commands(cli)
+load_dynamic_commands(cli, pathlib.Path('.devcli'))
 
 
-class MyCLI(click.Group):
-
-    def get_command(self, ctx: Context, cmd_name: str) -> t.Optional[Command]:
-        rv = click.Group.get_command(self, ctx, cmd_name)
-        if rv is not None:
-            return rv
-
-        # Fallback command handler
-        def fallback_command(args):
-            execute_fallback(cmd_name, args)
-
-        return click.Command(cmd_name,
-                             context_settings=dict(ignore_unknown_options=True),
-                             params=[click.Argument(['args'], nargs=-1)], callback=fallback_command)
+@cli.command()
+def version():
+    project_conf = Config(project_root('pyproject.toml'))
+    print(f'devcli version {project_conf['tool']['poetry']['version']}')
 
 
-@click.group(cls=MyCLI)
-@click.option('--version', is_flag=True, help="Show version information")
-@click.pass_context
-def cli(ctx, version: bool):
-    if version:
-        version_info()
+@cli.callback(invoke_without_command=True)
+def main(ctx: Context, debug: bool = typer.Option(False, "--debug", help="Enable debug log")):
+    if debug:
+        logging.getLogger().setLevel(level=logging.DEBUG)
+        logging.debug("Debug logging enabled")
 
-    devcli.io.CONFIG = io.config()
-    pass
+    # call help on the absense of a command
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
 
-
-@cli.command(help="Show version information")
-def version_info():
-    # set version as pyproject.toml is defined
-    with open(project_root("pyproject.toml")) as file:
-        project_info = toml.load(file)
-        version_number = project_info.get("tool", {}).get("poetry", {}).get("version", "")
-    return io.msg(f"devcli: v{version_number}")
-
-
-@cli.command(help="Call fallback command", context_settings=dict(ignore_unknown_options=True))
-@click.argument('args', nargs=-1)
-def fallback(args):
-    if len(args) == 0:
-        execute_fallback('', [])
-    else:
-        execute_fallback(args[0], args[1:])
+    ctx.obj = Config.load()
