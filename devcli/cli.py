@@ -16,8 +16,8 @@ load_dynamic_commands(cli, pathlib.Path('.devcli'))
 
 @cli.command()
 def version():
-    project_conf = Config(project_root('pyproject.toml'))
-    print(f'devcli version {project_conf['tool']['poetry']['version']}')
+    project_conf = Config().add_config(project_root('pyproject.toml'))
+    print(f'devcli version {project_conf['tool.poetry.version']}')
 
 
 @cli.callback(invoke_without_command=True)
@@ -31,4 +31,4 @@ def main(ctx: Context, debug: bool = typer.Option(False, "--debug", help="Enable
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    ctx.obj = Config.load()
+    ctx.obj = Config()

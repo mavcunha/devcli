@@ -1,3 +1,7 @@
 [devcli]
 
 fallback_command = "false"
+
+[devcli.secret]
+
+handler = "1Password"

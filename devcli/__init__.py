@@ -59,8 +59,9 @@ def load_default_commands(cli: Typer) -> None:
     # default commands that can be reused
     from devcli.command import (
         ci,
+        op,
     )
-    commands = [ci]
+    commands = [ci, op]
     for c in commands:
         _init_logger.debug(f'loading default command ({c.__name__})')
         cli.add_typer(c.cli, name=c.__name__.split('.')[-1])
