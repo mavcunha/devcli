@@ -43,11 +43,11 @@ class Config:
         return self
 
     def __getitem__(self, item: str) -> Any:
+        self.logger.debug(f'getitem:{item}')
         if "." in item:
             keys = item.split('.')
             level = self._config
             for key in keys:
-                self.logger.debug(f'searching for: {key}')
                 if isinstance(level, dict) and key in level:
                     level = level[key]
                 else:

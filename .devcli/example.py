@@ -1,6 +1,6 @@
 from devcli import cmd
 
-cli = cmd.get_cli()
+cli = cmd.cli("Simplest example of creating a command")
 
 
 @cli.command()

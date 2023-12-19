@@ -1,7 +1,7 @@
 from devcli import cmd
 from typer import Context
 
-cli = cmd.get_cli()
+cli = cmd.cli("Collections of command templates for reference")
 
 
 @cli.command()

@@ -2,7 +2,7 @@ from devcli import cmd
 
 from typer import Context
 
-cli = cmd.get_cli()
+cli = cmd.cli("General CI command line")
 
 
 @cli.command()
