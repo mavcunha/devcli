@@ -1,13 +1,15 @@
 import logging
 import os
+import random
 import shlex
 import subprocess
-import sys
-from subprocess import CompletedProcess
-from typing import Any, Union, List
+import threading
+from typing import Union, List
+
+from devcli.utils import styled_text
 
 
-def _quote_command(command):
+def _prepare_command(command):
     quoted_command = shlex.quote(command)
     # attempt to use user's shell, fallback to /bin/sh
     user_shell = os.environ.get('SHELL', '/bin/sh')
@@ -15,41 +17,66 @@ def _quote_command(command):
     return final_command
 
 
-def _stdout_exec(command: str):
+def create_process(command: str):
     logging.info(f'run:{command}')
-    final_command = _quote_command(command)
+    final_command = _prepare_command(command)
     logging.debug(f'final_command: {final_command}')
     proc = subprocess.Popen(final_command, shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
                             env=os.environ,
+                            bufsize=1,
+                            universal_newlines=True,
                             text=True)
-    for line in proc.stdout:
-        sys.stdout.write(line)
-    proc.wait()
-    return proc.returncode
+    return proc
 
 
-def run(command: Union[str, List[str]]):
+def process_output(process, process_name: str):
+    while True:
+        output = process.stdout.readline()
+        if process.poll() is not None and output == '':
+            break
+        if output:
+            print(f"{process_name}: {output.strip()}")
+
+
+def start_process_thread(process, alias):
+    thread = threading.Thread(target=process_output,
+                              args=(process, alias))
+    thread.start()
+    return thread
+
+
+def iter_for(commands):
+    """
+    Will return a iterable in the form of k,v for
+    any str in a list, dict or purely a str
+    """
+    if isinstance(commands, list):
+        return enumerate(list)
+    elif isinstance(commands, dict):
+        return commands.items()
+    else:
+        return enumerate([commands])
+
+
+def run(command: Union[str, List[str], dict]):
     """
     A basic shell execution that will execute the command and directly
     output its messages.
-    It won't capture the output and calling this
-    is a run and forget.
+    It won't capture the output and calling this is a run and forget.
     If a list of commands is given it will attempt to execute each one
     in order and will stop as soon a command fails.
     Similar to what `cmd1 && cmd2 && cmd3` would do in shell.
     """
-    if isinstance(command, list):
-        for c in command:
-            result = _stdout_exec(c)
-            if result != 0:
-                logging.info(f"'{c}' failed.")
-                break
-    elif isinstance(command, str):
-        return _stdout_exec(command)
-    else:
-        raise ValueError(f"{command} is not str or List[str]")
+    procs = []
+    for alias, cmd in iter_for(command):
+        process = create_process(cmd)
+        thread = start_process_thread(process, styled_text(f"{alias}", f'color({random.randint(1, 231)})'))
+        procs.append((process, thread))
+    for proc, thread in procs:
+        proc.wait()
+        thread.join()
 
 
 def capture(command: str) -> str:
@@ -58,7 +85,7 @@ def capture(command: str) -> str:
     of the command during its execution.
     """
     logging.debug(f'running shell: {command}')
-    final_command = _quote_command(command)
+    final_command = _prepare_command(command)
     result = subprocess.run(final_command, shell=True, capture_output=True, text=True)
     logging.debug(f'return code: {result.returncode}')
     return result.stdout

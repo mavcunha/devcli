@@ -6,7 +6,7 @@ work.
 import sys
 
 import typer
-from rich import print as rich_print
+from rich import print
 
 
 def cli(description: str = None) -> typer.Typer:
@@ -19,9 +19,43 @@ def cli(description: str = None) -> typer.Typer:
 
 
 def echo(msg: str):
-    rich_print(msg)
+    """
+    Just print a message into the terminal.
+    It uses rich.print() which allows for color tagging like [red]message[/red].
+    :param msg: A str with the message
+    """
+    print(msg)
 
 
 def error(msg: str):
-    rich_print(f"[red]{msg}[/red]")
-    sys.exit(1)
+    """
+    Print a message in red and exits the program with 1 which is
+    handled as error for most situations.
+    """
+    print(f"[red]{msg}[/red]")
+
+
+def warn(msg: str):
+    """
+    Prints a message in yellow and does not stop the execution of the program
+    """
+    print(f'[yellow]{msg}[/yellow]')
+
+
+def notice(msg: str):
+    """
+    Prints a message in cyan, usually as a topic or notice to the user
+    """
+    print(f'[cyan]{msg}[/cyan]')
+
+
+def stop(msg: str, exit: int = 1):
+    """
+    Prints a message in red if defined and stops the execution
+    :param msg:
+    :param exit: Optional exit number, defaults to 1
+    """
+    if msg is not None:
+        error(msg)
+
+    sys.exit(exit)

@@ -1,4 +1,5 @@
 from devcli import cmd
+from devcli.utils import random_color_name
 
 cli = cmd.cli("Simplest example of creating a command")
 
@@ -12,3 +13,13 @@ def test():
 @cli.command()
 def ping():
     cmd.echo('[green]PONG![/green]')
+
+
+@cli.command()
+def text():
+    """Demo types of text output you can use"""
+    cmd.echo('This is cmd.echo(msg)')
+    cmd.notice('This is cmd.notice(msg)')
+    cmd.warn('This is cmd.warn(msg)')
+    cmd.error('This is cmd.error(msg)')
+

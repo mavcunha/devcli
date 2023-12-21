@@ -1,6 +1,9 @@
-from .basic import cli, echo, error
+from .basic import cli, echo, error, warn, stop, notice
 from .config import Config
 
 conf = Config()
 
-__all__ = ["cli", "echo", "error", "conf"]
+# Functions related to print messages back to the user
+_msg = ['echo', 'error', 'warn', 'notice']
+
+__all__ = ["cli", "conf", "stop"] + _msg
