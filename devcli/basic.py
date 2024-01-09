@@ -15,7 +15,7 @@ def cli(description: str = None) -> typer.Typer:
     returns the basic Typer type for command declaration.
     :returns: a typer.Typer
     """
-    return typer.Typer(help=description)
+    return typer.Typer(help=description, no_args_is_help=True)
 
 
 def echo(msg: str):

@@ -1,5 +1,4 @@
 from devcli import cmd
-from devcli.utils import random_color_name
 
 cli = cmd.cli("Simplest example of creating a command")
 
