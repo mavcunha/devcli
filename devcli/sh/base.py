@@ -57,7 +57,10 @@ def iter_for(commands):
     elif isinstance(commands, dict):
         return commands.items()
     else:
-        return enumerate([commands])
+        # since commands is a single command, split any arguments
+        # and get the command name as its own alias
+        alias = os.path.basename(commands.split(' ')[0])
+        return iter_for({alias: commands})
 
 
 def run(command: Union[str, List[str], dict]):
