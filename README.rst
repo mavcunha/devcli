@@ -1,8 +1,8 @@
 devcli - a command line tool to create command line tools
 =========================================================
 
-This is a draft
----------------
+Draft on principles behind devcli
+---------------------------------
 
 Developers have to memorize a ungodly amount of information
 
