@@ -49,7 +49,7 @@ def start_process_thread(process, alias):
 
 def iter_for(commands):
     """
-    Will return a iterable in the form of k,v for
+    Will return an iterable in the form of k,v for
     any str in a list, dict or purely a str
     """
     if isinstance(commands, list):
